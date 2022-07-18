@@ -12,6 +12,8 @@ Web application designed to manage a cryptocurrency wallet.
 
 * Cryptocurrency valuations tracking
 * Transaction history tracking
+* On chain addresses tracking
+* Exchange position management
 
 
 
