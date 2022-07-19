@@ -54,7 +54,7 @@ public class WalletController {
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_ALREADY_EXISTS.ToString()), HttpStatus.CONFLICT);
         if (!WalletType.exists(wallet.getType().toString()))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_TYPE.ToString()), HttpStatus.NOT_FOUND);
-        if (wallet.getType().equals(WalletType.ON_CHAIN) && wallet.getAddress() == null || wallet.getAddress().length() == 0)
+        if (wallet.getType().equals(WalletType.ON_CHAIN) && (wallet.getAddress() == null || wallet.getAddress().length() == 0))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_ADDRESS.ToString()), HttpStatus.CONFLICT);
 
         walletService.createNewWallet(wallet, user);
