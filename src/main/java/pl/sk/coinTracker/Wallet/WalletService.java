@@ -1,6 +1,5 @@
 package pl.sk.coinTracker.Wallet;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.sk.coinTracker.User.User;
 
@@ -10,7 +9,6 @@ import java.util.List;
 public class WalletService {
     private final WalletRepository walletRepository;
 
-    @Autowired
     public WalletService(WalletRepository walletRepository) {
         this.walletRepository = walletRepository;
     }

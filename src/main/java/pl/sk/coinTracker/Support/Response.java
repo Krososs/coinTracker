@@ -22,6 +22,9 @@ public enum Response {
     WRONG_ADDRESS,
     TRANSACTION_NOTE_TOO_LONG,
     CHAIN_DOES_NOT_EXISTS,
+    CATEGORY_ALREADY_EXISTS,
+    CATEGORY_DOES_NOT_EXISTS,
+    USER_HAS_NO_RIGHTS_TO_CATEGORY,
     TOKEN_EXPIRED;
 
     public String ToString() {
@@ -49,7 +52,9 @@ public enum Response {
             case WRONG_ADDRESS -> "Wrong account address";
             case CHAIN_DOES_NOT_EXISTS -> "Selected chain does not exists or is not supported yet";
             case TRANSACTION_NOTE_TOO_LONG -> "Note is too long";
-            default -> "Problem not found";
+            case CATEGORY_ALREADY_EXISTS -> "You already have a category with given name";
+            case CATEGORY_DOES_NOT_EXISTS -> "Category does not exist";
+            case USER_HAS_NO_RIGHTS_TO_CATEGORY -> "You have no rights to given category";
         };
     }
 }

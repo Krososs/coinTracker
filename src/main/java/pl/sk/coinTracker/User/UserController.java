@@ -56,7 +56,6 @@ public class UserController {
 
             Map<String, String> data = new HashMap<>();
             data.put("acces_token", AuthUtil.getAccesToken(user));
-            //data.put("refresh_token", AuthUtil.getRefreshToken(user));
 
             return new ResponseEntity<>(data, HttpStatus.OK);
 
