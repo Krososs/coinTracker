@@ -49,7 +49,6 @@ public enum Response {
             case WRONG_ADDRESS -> "Wrong account address";
             case CHAIN_DOES_NOT_EXISTS -> "Selected chain does not exists or is not supported yet";
             case TRANSACTION_NOTE_TOO_LONG -> "Note is too long";
-            default -> "Problem not found";
         };
     }
 }
