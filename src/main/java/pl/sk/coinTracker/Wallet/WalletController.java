@@ -207,7 +207,7 @@ public class WalletController {
                 totalSpend += (t.getAmount() * t.getPrice());
             } else {
                 if (coins.get(t.getCoinId()) == null)
-                    coins.put(t.getCoinId(), t.getAmount() * -1.0);
+                    coins.put(t.getCoinId(), -t.getAmount());
                 else
                     coins.put(t.getCoinId(), coins.get(t.getCoinId()) - t.getAmount());
                 totalSpend -= (t.getAmount() * t.getPrice());

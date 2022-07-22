@@ -1,5 +1,6 @@
 package pl.sk.coinTracker.Filter;
 
+import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,6 +46,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
         UserDetails appUser = (UserDetails) authentication.getPrincipal();
         Map<String, String> data = new HashMap<>();
+
         data.put("acces_token", AuthUtil.getAccesToken(appUser));
         data.put("refresh_token", AuthUtil.getRefreshToken(appUser));
         response.setContentType(APPLICATION_JSON_VALUE);

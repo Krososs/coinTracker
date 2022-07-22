@@ -88,9 +88,9 @@ public class CoinService {
 
         ObjectNode coinInfo = new ObjectMapper().createObjectNode();
         coinInfo.put("info", getCoinById(id).toJson());
-        coinInfo.put("amount", (Math.round(amount * 100.0) / 100.0));
+        coinInfo.put("amount", (Math.round(amount * 1000.0) / 1000.0));
         coinInfo.put("price", Math.round(price * 10000.0) / 10000.0);
-        coinInfo.put("value", Math.round(value * 100.0) / 100.0);
+        coinInfo.put("value", Math.round(value * 1000.0) / 1000.0);
         coinInfo.put("addingDate", date);
 
         return coinInfo;
