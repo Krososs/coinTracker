@@ -23,7 +23,7 @@ public class CoinController {
     @GetMapping("coins/info")
     public ResponseEntity<?> getCoinInfo(@RequestParam Long coinId) {
         if (!coinService.coinExistsById(coinId))
-            return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXISTS.ToString()), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(coinService.getCoinById(coinId), HttpStatus.OK);
     }
 }

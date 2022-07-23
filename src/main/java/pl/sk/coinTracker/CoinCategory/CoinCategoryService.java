@@ -16,6 +16,10 @@ public class CoinCategoryService {
         categoryRepository.save(category);
     }
 
+    public CoinCategory getCategoryById(Long id){
+        return  categoryRepository.findById(id).get();
+    }
+
     public void deleteCategory(Long categoryId) {
         categoryRepository.deleteById(categoryId);
     }
@@ -27,11 +31,12 @@ public class CoinCategoryService {
         }
         return false;
     }
-    public boolean categoryExists(Long id){
+
+    public boolean categoryExists(Long id) {
         return categoryRepository.existsById(id);
     }
 
-    public boolean userIsOwner(Long userId, Long categoryId){
+    public boolean userIsOwner(Long userId, Long categoryId) {
         CoinCategory c = categoryRepository.findById(categoryId).get();
         return c.getUserId().equals(userId);
     }

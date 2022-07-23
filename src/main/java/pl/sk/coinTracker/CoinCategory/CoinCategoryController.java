@@ -34,7 +34,7 @@ public class CoinCategoryController {
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
 
         if (categoryService.categoryExists(userId, category.getName()))
-            return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_ALREADY_EXISTS.ToString()), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_ALREADY_EXIST.ToString()), HttpStatus.CONFLICT);
         if (result.hasErrors())
             return new ResponseEntity<>(Validation.getErrorResponse(result.getAllErrors()), HttpStatus.CONFLICT);
 
@@ -50,7 +50,7 @@ public class CoinCategoryController {
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
 
         if (!categoryService.categoryExists(categoryId))
-            return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_DOES_NOT_EXISTS.ToString()), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!categoryService.userIsOwner(userId, categoryId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_CATEGORY.ToString()), HttpStatus.CONFLICT);
 

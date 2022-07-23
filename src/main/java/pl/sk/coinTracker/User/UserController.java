@@ -35,7 +35,7 @@ public class UserController {
             DecodedJWT jwt = JWT.decode(token);
             String username = AuthUtil.getUsernameFromToken(token);
             if (userService.getUserFromUsernamne(username) == null)
-                return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_DOES_NOT_EXISTS.ToString()), HttpStatus.UNAUTHORIZED);
+                return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_DOES_NOT_EXIST.ToString()), HttpStatus.UNAUTHORIZED);
 
 
         } catch (TokenExpiredException exception) {
