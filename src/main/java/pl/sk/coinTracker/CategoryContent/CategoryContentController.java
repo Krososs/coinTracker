@@ -4,7 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.sk.coinTracker.Coin.CoinService;
-import pl.sk.coinTracker.CoinCategory.CoinCategory;
 import pl.sk.coinTracker.CoinCategory.CoinCategoryService;
 import pl.sk.coinTracker.Security.AuthUtil;
 import pl.sk.coinTracker.Support.Response;

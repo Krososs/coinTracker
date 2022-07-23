@@ -19,6 +19,8 @@ public class Wallet {
     @Enumerated(EnumType.ORDINAL)
     private WalletType type;
     private String address; // onChain address
+    @NonNull
+    private Double ath;
 
     public Wallet() {
     }

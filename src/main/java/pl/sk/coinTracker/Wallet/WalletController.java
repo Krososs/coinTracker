@@ -229,10 +229,18 @@ public class WalletController {
             totalValue += value;
         }
 
+        Wallet wallet = walletService.getWalletById(walletId);
+
         double pnl = walletService.getPercentageChange(totalSpend, totalValue);
-        walletInfo.put("name", walletService.getWalletById(walletId).getName());
+        if(totalValue> wallet.getAth()) {
+            wallet.setAth(totalValue);
+            walletService.editWallet(wallet,walletId);
+        }
+
+        walletInfo.put("name", wallet.getName());
         walletInfo.put("id", walletId);
-        walletInfo.put("type", walletService.getWalletById(walletId).getType().toString());
+        walletInfo.put("type", wallet.getType().toString());
+        walletInfo.put("ath",Math.round(wallet.getAth() * 100.0) / 100.0);
         walletInfo.put("totalValue", Math.round(totalValue * 100.0) / 100.0);
         walletInfo.put("totalSpend", Math.round(totalSpend * 100.0) / 100.0);
         walletInfo.put("pnl", Math.round(pnl * 100.0) / 100.0);
@@ -275,10 +283,17 @@ public class WalletController {
                 totalValue += value;
             }
         }
+        Wallet wallet = walletService.getWalletById(walletId);
+
+        if(totalValue> wallet.getAth()) {
+            wallet.setAth(totalValue);
+            walletService.editWallet(wallet,walletId);
+        }
 
         walletInfo.put("name", walletService.getWalletById(walletId).getName());
         walletInfo.put("type", walletService.getWalletById(walletId).getType().toString());
         walletInfo.put("id", walletId);
+        walletInfo.put("ath",Math.round(wallet.getAth() * 100.0) / 100.0);
         walletInfo.put("totalValue", Math.round(totalValue * 100.0) / 100.0);
 
         return new ResponseEntity<>(walletInfo, HttpStatus.OK);
