@@ -15,6 +15,7 @@ public class WalletService {
 
     public void createNewWallet(Wallet wallet, User owner) {
         wallet.setOwnerId(owner.getId());
+        wallet.setAth(0.0);
         walletRepository.save(wallet);
     }
 

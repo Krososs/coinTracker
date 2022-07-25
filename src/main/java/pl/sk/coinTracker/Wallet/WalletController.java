@@ -3,7 +3,6 @@ package pl.sk.coinTracker.Wallet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -87,7 +86,6 @@ public class WalletController {
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
-        transactionService.deleteTransactionsByWalletId(walletId);
         walletService.deleteWallet(walletId);
 
         return new ResponseEntity<>(HttpStatus.OK);
@@ -107,7 +105,7 @@ public class WalletController {
         if (transactionService.walletContainsCoin(walletId, coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_ALREADY_CONTAINS_COIN.ToString()), HttpStatus.CONFLICT);
 
-        transactionService.addNewTransaction(new Transaction(coinId, walletId, "BUY", 0.0, 0.0, new Date(), null));
+        transactionService.addNewTransaction(new Transaction(coinId, "BUY",walletService.getWalletById(walletId), 0.0,0.0, new Date(), null));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -128,18 +126,19 @@ public class WalletController {
     }
 
     @PostMapping("wallets/transactions/add")
-    public ResponseEntity<?> addTransaction(@ModelAttribute Transaction transaction, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> addTransaction(@RequestParam Long walletId, @ModelAttribute Transaction transaction , @RequestHeader("authorization") String token) {
+
+        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
 
         if (transaction.getAmount() <= 0.0)
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_TRANSACTION_AMOUNT.ToString()), HttpStatus.CONFLICT);
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
-        if (!walletService.userIsOwner(userId, transaction.getWalletId()))
+        if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
-        if (!transactionService.walletContainsCoin(transaction.getWalletId(), transaction.getCoinId()))
+        if (!transactionService.walletContainsCoin(walletId, transaction.getCoinId()))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_CONTAIN_COIN.ToString()), HttpStatus.NOT_FOUND);
         if (transaction.getNote().length() > TRANSACTION_NOTE_MAX_LENGTH)
             return new ResponseEntity<>(Validation.getErrorResponse(Response.TRANSACTION_NOTE_TOO_LONG.ToString()), HttpStatus.CONFLICT);
-
+        transaction.setWallet(walletService.getWalletById(walletId));
         transactionService.addNewTransaction(transaction);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -151,7 +150,7 @@ public class WalletController {
             return new ResponseEntity<>(Validation.getErrorResponse(Response.TRANSACTION_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
-        Long walletId = transactionService.getTransactionById(transactionId).getWalletId();
+        Long walletId = transactionService.getTransactionById(transactionId).getWallet().getId();
 
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
@@ -168,11 +167,11 @@ public class WalletController {
             return new ResponseEntity<>(Validation.getErrorResponse(Response.TRANSACTION_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
 
         Transaction t = transactionService.getTransactionById(transaction.getId());
-        transaction.setWalletId(t.getWalletId());
+        transaction.setWallet(t.getWallet());
         transaction.setCoinId(t.getCoinId());
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
-        Long walletId = transaction.getWalletId();
+        Long walletId = transaction.getWallet().getId();
 
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
@@ -193,7 +192,8 @@ public class WalletController {
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
-        List<Transaction> walletTransactions = transactionService.getTransactionsByWalletId(walletId);
+        Wallet wallet = walletService.getWalletById(walletId);
+        List<Transaction> walletTransactions = wallet.getTransactions();
         Map<Long, Double> coins = new HashMap<>(); // id/amount
         double totalSpend = 0.0;
 
@@ -229,8 +229,6 @@ public class WalletController {
             totalValue += value;
         }
 
-        Wallet wallet = walletService.getWalletById(walletId);
-
         double pnl = walletService.getPercentageChange(totalSpend, totalValue);
         if(totalValue> wallet.getAth()) {
             wallet.setAth(totalValue);
@@ -254,6 +252,9 @@ public class WalletController {
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CHAIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
+        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        if (!walletService.userIsOwner(userId, walletId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
         Scrapper s = Scrapper.get(chain);
 
@@ -322,10 +323,10 @@ public class WalletController {
         if (!coinService.coinExistsById(coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
 
-        List<Transaction> transactions = transactionService.getTransactions(walletId, coinId)
+        List<Transaction> transactions = transactionService.getTransactions(walletId,coinId)
                 .stream().filter(t -> t.getAmount() > 0.0).collect(Collectors.toList());
 
-        return new ResponseEntity<>(transactions, HttpStatus.OK);
+        return new ResponseEntity<>(transactions,HttpStatus.OK);
     }
 
     @GetMapping("wallets/transactions/get/all")
@@ -336,6 +337,6 @@ public class WalletController {
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
-        return new ResponseEntity<>(transactionService.getTransactionsByWalletId(walletId), HttpStatus.OK);
+        return new ResponseEntity<>(transactionService.getTransactionsByWallet(walletService.getWalletById(walletId)), HttpStatus.OK);
     }
 }

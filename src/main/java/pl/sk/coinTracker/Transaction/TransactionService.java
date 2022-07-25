@@ -1,5 +1,6 @@
 package pl.sk.coinTracker.Transaction;
 import org.springframework.stereotype.Service;
+import pl.sk.coinTracker.Wallet.Wallet;
 
 import java.util.List;
 
@@ -23,6 +24,9 @@ public class TransactionService {
     public Transaction getInitialTransaction(Long walletId, Long coinId) {
         return transactionRepository.getInitialTransaction(walletId, coinId).get();
     }
+    public List<Transaction> findByWallet(Wallet w){
+        return transactionRepository.findByWallet(w);
+    }
 
     public void addNewTransaction(Transaction transaction) {
         transactionRepository.save(transaction);
@@ -44,10 +48,6 @@ public class TransactionService {
         transactionRepository.deleteById(id);
     }
 
-    public void deleteTransactionsByWalletId(Long id) {
-        transactionRepository.deleteByWalletId(id);
-    }
-
     public void deleteTransactionsByCoinId(Long walletId, Long coinId) {
         transactionRepository.deleteByCoinId(walletId, coinId);
     }
@@ -55,12 +55,12 @@ public class TransactionService {
     public Transaction getTransactionById(Long id) {
         return transactionRepository.getById(id);
     }
-
-    public List<Transaction> getTransactionsByWalletId(Long walletId) {
-        return transactionRepository.findBywalletId(walletId);
+    public List<Transaction> getTransactionsByWallet(Wallet w){
+        return transactionRepository.findByWallet(w);
     }
 
     public List<Transaction> getTransactions(Long walletId, Long coinId) {
         return transactionRepository.getTransactions(walletId, coinId);
     }
+
 }

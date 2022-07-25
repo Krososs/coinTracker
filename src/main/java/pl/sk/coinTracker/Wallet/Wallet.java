@@ -1,12 +1,13 @@
 package pl.sk.coinTracker.Wallet;
 
-import lombok.Data;
-import lombok.NonNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
+import pl.sk.coinTracker.Transaction.Transaction;
 
 import javax.persistence.*;
+import java.util.List;
 
-@Data
-@Table(name="wallets")
+@Table(name = "wallets")
 @Entity
 public class Wallet {
     @Id
@@ -22,6 +23,67 @@ public class Wallet {
     @NonNull
     private Double ath;
 
+    @OneToMany(mappedBy = "wallet", fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL)
+    @JsonIgnoreProperties(value = {"wallet", "handler", "hibernateLazyInitializer"}, allowSetters = true)
+    private List<Transaction> transactions;
+
     public Wallet() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public WalletType getType() {
+        return type;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public Double getAth() {
+        return ath;
+    }
+
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setType(WalletType type) {
+        this.type = type;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setAth(Double ath) {
+        this.ath = ath;
+    }
+
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
     }
 }
