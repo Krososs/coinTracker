@@ -18,6 +18,8 @@ import pl.sk.coinTracker.User.UserService;
 import pl.sk.coinTracker.Security.AuthUtil;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -105,7 +107,7 @@ public class WalletController {
         if (transactionService.walletContainsCoin(walletId, coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_ALREADY_CONTAINS_COIN.ToString()), HttpStatus.CONFLICT);
 
-        transactionService.addNewTransaction(new Transaction(coinId, "BUY",walletService.getWalletById(walletId), 0.0,0.0, new Date(), null));
+        transactionService.addNewTransaction(new Transaction(coinId, "BUY", walletService.getWalletById(walletId), BigDecimal.ZERO, BigDecimal.ZERO, new Date(), null));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -126,11 +128,10 @@ public class WalletController {
     }
 
     @PostMapping("wallets/transactions/add")
-    public ResponseEntity<?> addTransaction(@RequestParam Long walletId, @ModelAttribute Transaction transaction , @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> addTransaction(@RequestParam Long walletId, @ModelAttribute Transaction transaction, @RequestHeader("authorization") String token) {
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
-
-        if (transaction.getAmount() <= 0.0)
+        if (transaction.getAmount().compareTo(BigDecimal.ZERO) <= 0)
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_TRANSACTION_AMOUNT.ToString()), HttpStatus.CONFLICT);
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
@@ -194,8 +195,8 @@ public class WalletController {
 
         Wallet wallet = walletService.getWalletById(walletId);
         List<Transaction> walletTransactions = wallet.getTransactions();
-        Map<Long, Double> coins = new HashMap<>(); // id/amount
-        double totalSpend = 0.0;
+        Map<Long, BigDecimal> coins = new HashMap<>(); // id/amount
+        BigDecimal totalSpend = BigDecimal.ZERO;
 
         for (Transaction t : walletTransactions) {
 
@@ -203,45 +204,46 @@ public class WalletController {
                 if (coins.get(t.getCoinId()) == null)
                     coins.put(t.getCoinId(), t.getAmount());
                 else
-                    coins.put(t.getCoinId(), coins.get(t.getCoinId()) + t.getAmount());
-                totalSpend += (t.getAmount() * t.getPrice());
+                    coins.put(t.getCoinId(), t.getAmount().add(coins.get(t.getCoinId())));
+                totalSpend=totalSpend.add(t.getPrice().multiply(t.getAmount()));
             } else {
                 if (coins.get(t.getCoinId()) == null)
-                    coins.put(t.getCoinId(), -t.getAmount());
+                    coins.put(t.getCoinId(), t.getAmount().negate());
                 else
-                    coins.put(t.getCoinId(), coins.get(t.getCoinId()) - t.getAmount());
-                totalSpend -= (t.getAmount() * t.getPrice());
+                    coins.put(t.getCoinId(), coins.get(t.getCoinId()).subtract(t.getAmount()));
+                totalSpend=totalSpend.subtract(t.getAmount().multiply(t.getPrice()));
             }
         }
 
         ObjectNode walletInfo = new ObjectMapper().createObjectNode();
         ArrayNode coinsInfo = walletInfo.putArray("coins");
-        double totalValue = 0.0;
-        Double price;
-        Double value;
+        BigDecimal totalValue = BigDecimal.ZERO;
+        BigDecimal price;
+        BigDecimal value;
 
-        for (Map.Entry<Long, Double> coin : coins.entrySet()) {
+        for (Map.Entry<Long, BigDecimal> coin : coins.entrySet()) {
 
             price = coinService.getPrice(coin.getKey());
-            value = price * coin.getValue();
+            value = price.multiply(coin.getValue());
             ObjectNode coinInfo = coinService.getCoinInfo(coin.getKey(), coin.getValue(), price, value, transactionService.getInitialTransaction(walletId, coin.getKey()).getDate().toString());
             coinsInfo.add(coinInfo);
-            totalValue += value;
+            totalValue=totalValue.add(value);
         }
 
-        double pnl = walletService.getPercentageChange(totalSpend, totalValue);
-        if(totalValue> wallet.getAth()) {
+        BigDecimal pnl = walletService.getPercentageChange(totalSpend, totalValue);
+
+        if (totalValue.compareTo(wallet.getAth()) > 0) {
             wallet.setAth(totalValue);
-            walletService.editWallet(wallet,walletId);
+            walletService.editWallet(wallet, walletId);
         }
 
         walletInfo.put("name", wallet.getName());
         walletInfo.put("id", walletId);
         walletInfo.put("type", wallet.getType().toString());
-        walletInfo.put("ath",Math.round(wallet.getAth() * 100.0) / 100.0);
-        walletInfo.put("totalValue", Math.round(totalValue * 100.0) / 100.0);
-        walletInfo.put("totalSpend", Math.round(totalSpend * 100.0) / 100.0);
-        walletInfo.put("pnl", Math.round(pnl * 100.0) / 100.0);
+        walletInfo.put("ath", wallet.getAth().round(new MathContext(4)));
+        walletInfo.put("totalValue", totalValue.round(new MathContext(4)));
+        walletInfo.put("totalSpend", totalSpend.round(new MathContext(4)));
+        walletInfo.put("pnl", pnl.round(new MathContext(4)));
         return new ResponseEntity<>(walletInfo, HttpStatus.OK);
     }
 
@@ -265,37 +267,37 @@ public class WalletController {
         ArrayNode coinsInfo = walletInfo.putArray("coins");
 
         Long id = coinService.getCoinByTicker(s.getNativeCurrencyTicker()).getId();
-        Double price = coinService.getPrice(id);
-        Double value = price * s.getNativeCurrencyBalance(address).get("balance");
-        Double totalValue = 0.0;
+        BigDecimal price = coinService.getPrice(id);
+        BigDecimal value = price.multiply(BigDecimal.valueOf(s.getNativeCurrencyBalance(address).get("balance")));
+        BigDecimal totalValue = BigDecimal.ZERO;
 
-        ObjectNode coinInfo = coinService.getCoinInfo(id, s.getNativeCurrencyBalance(address).get("balance"), price, value, "none");
+        ObjectNode coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(s.getNativeCurrencyBalance(address).get("balance")), price, value, "none");
         coinsInfo.add(coinInfo);
-        totalValue += value;
+        totalValue=totalValue.add(value);
 
         for (Map<String, String> t : tokens) {
 
             if (coinService.coinExistsByTicker(t.get("ticker"))) {
                 id = coinService.getCoinByTicker(t.get("ticker")).getId();
                 price = coinService.getPrice(id);
-                value = price * Double.valueOf(t.get("balance"));
-                coinInfo = coinService.getCoinInfo(id, Double.valueOf(t.get("balance")), price, value, "none");
+                value = price.multiply(BigDecimal.valueOf(Double.valueOf(t.get("balance"))));
+                coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(Double.valueOf(t.get("balance"))), price, value, "none");
                 coinsInfo.add(coinInfo);
-                totalValue += value;
+                totalValue=totalValue.add(value);
             }
         }
         Wallet wallet = walletService.getWalletById(walletId);
 
-        if(totalValue> wallet.getAth()) {
+        if (totalValue.compareTo(wallet.getAth()) > 0) {
             wallet.setAth(totalValue);
-            walletService.editWallet(wallet,walletId);
+            walletService.editWallet(wallet, walletId);
         }
 
         walletInfo.put("name", walletService.getWalletById(walletId).getName());
         walletInfo.put("type", walletService.getWalletById(walletId).getType().toString());
         walletInfo.put("id", walletId);
-        walletInfo.put("ath",Math.round(wallet.getAth() * 100.0) / 100.0);
-        walletInfo.put("totalValue", Math.round(totalValue * 100.0) / 100.0);
+        walletInfo.put("ath", wallet.getAth().round(new MathContext(3)));
+        walletInfo.put("totalValue", totalValue.round(new MathContext(3)));
 
         return new ResponseEntity<>(walletInfo, HttpStatus.OK);
     }
@@ -323,10 +325,10 @@ public class WalletController {
         if (!coinService.coinExistsById(coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
 
-        List<Transaction> transactions = transactionService.getTransactions(walletId,coinId)
-                .stream().filter(t -> t.getAmount() > 0.0).collect(Collectors.toList());
+        List<Transaction> transactions = transactionService.getTransactions(walletId, coinId)
+                .stream().filter(t -> t.getAmount().compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
 
-        return new ResponseEntity<>(transactions,HttpStatus.OK);
+        return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
     @GetMapping("wallets/transactions/get/all")

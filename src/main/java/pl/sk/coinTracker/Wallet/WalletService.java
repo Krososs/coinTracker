@@ -3,6 +3,7 @@ package pl.sk.coinTracker.Wallet;
 import org.springframework.stereotype.Service;
 import pl.sk.coinTracker.User.User;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -15,7 +16,7 @@ public class WalletService {
 
     public void createNewWallet(Wallet wallet, User owner) {
         wallet.setOwnerId(owner.getId());
-        wallet.setAth(0.0);
+        wallet.setAth(BigDecimal.ZERO);
         walletRepository.save(wallet);
     }
 
@@ -46,8 +47,10 @@ public class WalletService {
         return walletRepository.findById(walletId).get().getName();
     }
 
-    public double getPercentageChange(double totalSpend, double totalValue) {
-        return (totalValue - totalSpend) / totalSpend * 100;
+    public BigDecimal getPercentageChange(BigDecimal totalSpend, BigDecimal totalValue) {
+        if(totalSpend.equals(BigDecimal.ZERO) || totalValue.equals(BigDecimal.ZERO))
+            return BigDecimal.ZERO;
+        return totalValue.subtract(totalSpend).divide(totalSpend).multiply(BigDecimal.valueOf(100));
     }
 
     public boolean walletExists(Long id) {

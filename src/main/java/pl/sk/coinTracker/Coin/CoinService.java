@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +70,7 @@ public class CoinService {
         return coinRepository.getById(id).getIdentifier();
     }
 
-    public Double getPrice(Long id) {
+    public BigDecimal getPrice(Long id) {
 
         String coinIdentifier = getCoinIdentifierFromId(id);
         Map<String, Map<String, Double>> priceData;
@@ -79,18 +82,18 @@ public class CoinService {
             entry = data.entrySet().iterator().next();
 
         } catch (Exception e) {
-            return 0.0;
+            return BigDecimal.ZERO;
         }
-        return entry.getValue();
+        return BigDecimal.valueOf(entry.getValue());
     }
 
-    public ObjectNode getCoinInfo(Long id, Double amount, Double price, Double value, String date) {
+    public ObjectNode getCoinInfo(Long id, BigDecimal amount, BigDecimal price, BigDecimal value, String date) {
 
         ObjectNode coinInfo = new ObjectMapper().createObjectNode();
         coinInfo.put("info", getCoinById(id).toJson());
-        coinInfo.put("amount", (Math.round(amount * 1000.0) / 1000.0));
-        coinInfo.put("price", Math.round(price * 10000.0) / 10000.0);
-        coinInfo.put("value", Math.round(value * 1000.0) / 1000.0);
+        coinInfo.put("amount", amount.round(new MathContext(4)));
+        coinInfo.put("price", price.round(new MathContext(4)));
+        coinInfo.put("value", value.round(new MathContext(4)));
         coinInfo.put("addingDate", date);
 
         return coinInfo;

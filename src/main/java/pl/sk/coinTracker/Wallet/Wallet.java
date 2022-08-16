@@ -5,6 +5,7 @@ import lombok.*;
 import pl.sk.coinTracker.Transaction.Transaction;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Table(name = "wallets")
@@ -21,7 +22,7 @@ public class Wallet {
     private WalletType type;
     private String address; // onChain address
     @NonNull
-    private Double ath;
+    private BigDecimal ath;
 
     @OneToMany(mappedBy = "wallet", fetch = FetchType.LAZY,
             cascade = CascadeType.ALL)
@@ -51,7 +52,7 @@ public class Wallet {
         return address;
     }
 
-    public Double getAth() {
+    public BigDecimal getAth() {
         return ath;
     }
 
@@ -79,7 +80,7 @@ public class Wallet {
         this.address = address;
     }
 
-    public void setAth(Double ath) {
+    public void setAth(BigDecimal ath) {
         this.ath = ath;
     }
 

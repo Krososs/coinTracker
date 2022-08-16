@@ -5,6 +5,7 @@ import lombok.NonNull;
 import pl.sk.coinTracker.Wallet.Wallet;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Table(name = "transactions")
@@ -19,9 +20,9 @@ public class Transaction {
     @NonNull
     private Long coinId;
     @NonNull
-    private Double price;
+    private BigDecimal price;
     @NonNull
-    private Double amount;
+    private BigDecimal amount;
     @NonNull
     private String type;
     private String note;
@@ -31,7 +32,7 @@ public class Transaction {
     @JoinColumn(name = "wallet_id", nullable = false)
     private Wallet wallet;
 
-    public Transaction(Long coinId, String type,Wallet wallet, double amount, double price, Date date, String note) {
+    public Transaction(Long coinId, String type,Wallet wallet, BigDecimal amount, BigDecimal price, Date date, String note) {
         this.coinId = coinId;
         this.type = type;
         this.wallet=wallet;
@@ -56,11 +57,11 @@ public class Transaction {
         return coinId;
     }
 
-    public Double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
@@ -88,11 +89,11 @@ public class Transaction {
         this.coinId = coinId;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
