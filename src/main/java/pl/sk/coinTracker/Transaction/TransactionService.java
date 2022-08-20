@@ -34,7 +34,7 @@ public class TransactionService {
 
     public void editTransaction(Transaction transaction) {
 
-        Transaction t = transactionRepository.getById(transaction.getId());
+        Transaction t = transactionRepository.findById(transaction.getId()).get();
 
         t.setPrice(transaction.getPrice());
         t.setAmount(transaction.getAmount());
@@ -53,7 +53,7 @@ public class TransactionService {
     }
 
     public Transaction getTransactionById(Long id) {
-        return transactionRepository.getById(id);
+        return transactionRepository.findById(id).get();
     }
     public List<Transaction> getTransactionsByWallet(Wallet w){
         return transactionRepository.findByWallet(w);

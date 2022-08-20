@@ -21,10 +21,10 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void registerUser(User user) {
+    public User registerUser(User user) {
         user.setRole("ROLE_USER");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public boolean usernameExists(String username) {
@@ -36,7 +36,7 @@ public class UserService implements UserDetailsService {
     }
 
     public User getUserFromUsernamne(String username) {
-        if (!userRepository.findByUsername(username).isPresent())
+        if (userRepository.findByUsername(username).isEmpty())
             return null;
         return userRepository.findByUsername(username).get();
     }
@@ -48,7 +48,7 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        if (!userRepository.findByUsername(username).isPresent()) {
+        if (userRepository.findByUsername(username).isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         } else {
             User user = userRepository.findByUsername(username).get();

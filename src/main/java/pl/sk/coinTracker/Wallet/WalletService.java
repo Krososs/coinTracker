@@ -1,9 +1,9 @@
 package pl.sk.coinTracker.Wallet;
 
 import org.springframework.stereotype.Service;
-import pl.sk.coinTracker.User.User;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -14,28 +14,25 @@ public class WalletService {
         this.walletRepository = walletRepository;
     }
 
-    public void createNewWallet(Wallet wallet, User owner) {
-        wallet.setOwnerId(owner.getId());
+    public Wallet createNewWallet(Wallet wallet, Long userId) {
+        wallet.setOwnerId(userId);
         wallet.setAth(BigDecimal.ZERO);
-        walletRepository.save(wallet);
+        return walletRepository.save(wallet);
     }
 
-    public void editWallet(Wallet wallet, Long walletId){
+    public void editWallet(String name, Long walletId) {
         Wallet w = walletRepository.findById(walletId).get();
-        w.setName(wallet.getName());
+        w.setName(name);
         walletRepository.save(w);
     }
 
-    public void deleteWallet(Long walletId){
+    public void deleteWallet(Long walletId) {
         walletRepository.deleteById(walletId);
     }
 
     public boolean walletNameAlreadyExists(String walletName, Long ownerId) {
-        for (Wallet w : walletRepository.findByOwnerId(ownerId)) {
-            if (w.getName().equals(walletName))
-                return true;
-        }
-        return false;
+        return walletRepository.findByOwnerId(ownerId).stream()
+                .anyMatch(wallet -> wallet.getName().equals(walletName));
     }
 
     public boolean userIsOwner(Long userId, Long walletId) {
@@ -43,14 +40,11 @@ public class WalletService {
         return w.getOwnerId().equals(userId);
     }
 
-    public String getWalletName(Long walletId) {
-        return walletRepository.findById(walletId).get().getName();
-    }
-
     public BigDecimal getPercentageChange(BigDecimal totalSpend, BigDecimal totalValue) {
-        if(totalSpend.equals(BigDecimal.ZERO) || totalValue.equals(BigDecimal.ZERO))
-            return BigDecimal.ZERO;
-        return totalValue.subtract(totalSpend).divide(totalSpend).multiply(BigDecimal.valueOf(100));
+        if ((totalSpend.equals(BigDecimal.ZERO) && totalValue.equals(BigDecimal.ZERO)) || (totalSpend.equals(BigDecimal.ZERO) && !totalValue.equals(BigDecimal.ZERO)))
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_EVEN);
+        double percentageChange = (totalValue.doubleValue() - totalSpend.doubleValue()) / totalSpend.doubleValue() * 100.0;
+        return new BigDecimal(percentageChange).setScale(2, RoundingMode.HALF_EVEN);
     }
 
     public boolean walletExists(Long id) {
@@ -60,5 +54,8 @@ public class WalletService {
     public List<Wallet> getUserWallets(Long userId) {
         return walletRepository.findByOwnerId(userId);
     }
-    public Wallet getWalletById(Long id){ return  walletRepository.findById(id).get();}
+
+    public Wallet getWalletById(Long id) {
+        return walletRepository.findById(id).get();
+    }
 }

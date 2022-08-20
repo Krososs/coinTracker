@@ -7,7 +7,7 @@ import com.litesoftwares.coingecko.constant.Currency;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +28,7 @@ public class CoinService {
 
     public boolean coinExistsByTicker(String ticker) {
 
-        if ((long) coinRepository.findByTicker(ticker).size() > 2)
+        if (coinRepository.findByTicker(ticker).size() > 2)
             return false;
         return coinRepository.findByTicker(ticker).stream().findFirst().isPresent();
     }
@@ -38,12 +38,12 @@ public class CoinService {
     }
 
     public Coin getCoinById(Long id) {
-        return coinRepository.getById(id);
+        return coinRepository.findById(id).get();
     }
 
     public Coin getCoinByTicker(String ticker) {
 
-        if ((long) coinRepository.findByTicker(ticker).size() == 2) {
+        if (coinRepository.findByTicker(ticker).size() == 2) {
             List<Coin> coins = coinRepository.findByTicker(ticker);
 
             if ((coins.stream().findFirst().get().getCoinrank() < coins.get(coins.size() - 1).getCoinrank()) && coins.stream().findFirst().get().getCoinrank() != 0)
@@ -67,7 +67,7 @@ public class CoinService {
     }
 
     public String getCoinIdentifierFromId(Long id) {
-        return coinRepository.getById(id).getIdentifier();
+        return coinRepository.findById(id).get().getIdentifier();
     }
 
     public BigDecimal getPrice(Long id) {
@@ -91,11 +91,10 @@ public class CoinService {
 
         ObjectNode coinInfo = new ObjectMapper().createObjectNode();
         coinInfo.put("info", getCoinById(id).toJson());
-        coinInfo.put("amount", amount.round(new MathContext(4)));
-        coinInfo.put("price", price.round(new MathContext(4)));
-        coinInfo.put("value", value.round(new MathContext(4)));
+        coinInfo.put("amount", amount.setScale(2, RoundingMode.HALF_EVEN));
+        coinInfo.put("price", price.setScale(2, RoundingMode.HALF_EVEN));
+        coinInfo.put("value", value.setScale(2, RoundingMode.HALF_EVEN));
         coinInfo.put("addingDate", date);
-
         return coinInfo;
     }
 }

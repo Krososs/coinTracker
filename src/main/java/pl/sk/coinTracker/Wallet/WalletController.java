@@ -58,7 +58,7 @@ public class WalletController {
         if (wallet.getType().equals(WalletType.ON_CHAIN) && (wallet.getAddress() == null || wallet.getAddress().length() == 0))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_ADDRESS.ToString()), HttpStatus.CONFLICT);
 
-        walletService.createNewWallet(wallet, user);
+        walletService.createNewWallet(wallet, user.getId());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -75,7 +75,7 @@ public class WalletController {
         if (wallet.getName().length() > WALLET_NAME_MAX_LENGTH)
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_NAME_TOO_LONG.ToString()), HttpStatus.CONFLICT);
 
-        walletService.editWallet(wallet, wallet.getId());
+        walletService.editWallet(wallet.getName(), wallet.getId());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -201,10 +201,7 @@ public class WalletController {
         for (Transaction t : walletTransactions) {
 
             if (t.getType().equals("BUY")) {
-                if (coins.get(t.getCoinId()) == null)
-                    coins.put(t.getCoinId(), t.getAmount());
-                else
-                    coins.put(t.getCoinId(), t.getAmount().add(coins.get(t.getCoinId())));
+                coins.merge(t.getCoinId(), t.getAmount(), (a, b) -> b.add(a));
                 totalSpend=totalSpend.add(t.getPrice().multiply(t.getAmount()));
             } else {
                 if (coins.get(t.getCoinId()) == null)
@@ -234,7 +231,7 @@ public class WalletController {
 
         if (totalValue.compareTo(wallet.getAth()) > 0) {
             wallet.setAth(totalValue);
-            walletService.editWallet(wallet, walletId);
+            walletService.editWallet(wallet.getName(), walletId);
         }
 
         walletInfo.put("name", wallet.getName());
@@ -248,7 +245,7 @@ public class WalletController {
     }
 
     @GetMapping("wallets/chain/info")
-    public ResponseEntity<?> getOnChainWalletInfo(@RequestParam String chain, @RequestParam Long walletId, @RequestHeader("authorization") String token) throws IOException, InterruptedException {
+    public ResponseEntity<?> getOnChainWalletInfo(@RequestParam String chain, @RequestParam Long walletId, @RequestHeader("authorization") String token) throws IOException{
 
         if (!Chain.exists(chain))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CHAIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
@@ -280,8 +277,8 @@ public class WalletController {
             if (coinService.coinExistsByTicker(t.get("ticker"))) {
                 id = coinService.getCoinByTicker(t.get("ticker")).getId();
                 price = coinService.getPrice(id);
-                value = price.multiply(BigDecimal.valueOf(Double.valueOf(t.get("balance"))));
-                coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(Double.valueOf(t.get("balance"))), price, value, "none");
+                value = price.multiply(BigDecimal.valueOf(Double.parseDouble(t.get("balance"))));
+                coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(Double.parseDouble(t.get("balance"))), price, value, "none");
                 coinsInfo.add(coinInfo);
                 totalValue=totalValue.add(value);
             }
@@ -290,7 +287,7 @@ public class WalletController {
 
         if (totalValue.compareTo(wallet.getAth()) > 0) {
             wallet.setAth(totalValue);
-            walletService.editWallet(wallet, walletId);
+            walletService.editWallet(wallet.getName(), walletId);
         }
 
         walletInfo.put("name", walletService.getWalletById(walletId).getName());
