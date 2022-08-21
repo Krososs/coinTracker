@@ -7,6 +7,7 @@ import pl.sk.coinTracker.Support.Response;
 import pl.sk.coinTracker.Support.Validation;
 
 @RestController
+@RequestMapping("/coins")
 public class CoinController {
 
     private final CoinService coinService;
@@ -15,12 +16,12 @@ public class CoinController {
         this.coinService = coinService;
     }
 
-    @GetMapping("coins/search")
+    @GetMapping("/search")
     public ResponseEntity<?> search(@RequestParam String phrase) {
         return new ResponseEntity<>(coinService.getCoinsByPhrase(phrase), HttpStatus.OK);
     }
 
-    @GetMapping("coins/info")
+    @GetMapping("/info")
     public ResponseEntity<?> getCoinInfo(@RequestParam Long coinId) {
         if (!coinService.coinExistsById(coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);

@@ -18,6 +18,7 @@ import java.util.Map;
 
 
 @RestController
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -26,7 +27,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("users/authenticate")
+    @GetMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestHeader("authorization") String token) {
 
         if (token == null || token.length() == 0)
@@ -44,7 +45,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("users/token/refresh")
+    @GetMapping("/token/refresh")
     public ResponseEntity<?> refreshToken(@RequestHeader("authorization") String refreshToken) {
 
         if (refreshToken == null || refreshToken.length() == 0)
@@ -66,7 +67,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("users/register")
+    @PostMapping("/register")
     public ResponseEntity<?> register(@Valid User user, BindingResult result) {
 
         if (result.hasErrors())
@@ -80,7 +81,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("users/info")
+    @GetMapping("/info")
     public ResponseEntity<?> getUserInfo(@RequestHeader("authorization") String token) {
         String username = AuthUtil.getUsernameFromToken(token);
         User user = userService.getUserFromUsernamne(username);

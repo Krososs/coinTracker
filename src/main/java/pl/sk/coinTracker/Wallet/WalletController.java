@@ -27,6 +27,7 @@ import static pl.sk.coinTracker.Support.Validation.TRANSACTION_NOTE_MAX_LENGTH;
 import static pl.sk.coinTracker.Support.Validation.WALLET_NAME_MAX_LENGTH;
 
 @RestController
+@RequestMapping("/wallets")
 public class WalletController {
 
     private final WalletService walletService;
@@ -41,7 +42,7 @@ public class WalletController {
         this.transactionService = transactionService;
     }
 
-    @PostMapping("wallets/create")
+    @PostMapping("/create")
     public ResponseEntity<?> createWallet(@ModelAttribute Wallet wallet, @RequestHeader("authorization") String token) {
 
         String username = AuthUtil.getUsernameFromToken(token);
@@ -62,7 +63,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PatchMapping("wallets/edit")
+    @PatchMapping("/edit")
     public ResponseEntity<?> editWallet(@ModelAttribute Wallet wallet, @RequestHeader("authorization") String token) {
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
@@ -79,7 +80,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("wallets/delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<?> deleteWallet(@RequestParam Long walletId, @RequestHeader("authorization") String token) {
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
@@ -93,7 +94,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("wallets/coin/add")
+    @PostMapping("/coin/add")
     public ResponseEntity<?> addNewCoin(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
@@ -111,7 +112,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("wallets/coin/delete")
+    @DeleteMapping("/coin/delete")
     public ResponseEntity<?> deleteCoin(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
@@ -127,7 +128,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("wallets/transactions/add")
+    @PostMapping("/transactions/add")
     public ResponseEntity<?> addTransaction(@RequestParam Long walletId, @ModelAttribute Transaction transaction, @RequestHeader("authorization") String token) {
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
@@ -144,7 +145,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("wallets/transactions/delete")
+    @DeleteMapping("/transactions/delete")
     public ResponseEntity<?> deleteTransaction(@RequestParam Long transactionId, @RequestHeader("authorization") String token) {
 
         if (!transactionService.transactionExists(transactionId))
@@ -161,7 +162,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PatchMapping("wallets/transactions/edit")
+    @PatchMapping("/transactions/edit")
     public ResponseEntity<?> editTransaction(@ModelAttribute Transaction transaction, @RequestHeader("authorization") String token) {
 
         if (transaction.getId() == null || !transactionService.transactionExists(transaction.getId()))
@@ -184,7 +185,7 @@ public class WalletController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("wallets/info")
+    @GetMapping("/info")
     public ResponseEntity<?> getWalletInfo(@RequestParam Long walletId, @RequestHeader("authorization") String token) {
 
         if (!walletService.walletExists(walletId))
@@ -244,7 +245,7 @@ public class WalletController {
         return new ResponseEntity<>(walletInfo, HttpStatus.OK);
     }
 
-    @GetMapping("wallets/chain/info")
+    @GetMapping("/chain/info")
     public ResponseEntity<?> getOnChainWalletInfo(@RequestParam String chain, @RequestParam Long walletId, @RequestHeader("authorization") String token) throws IOException{
 
         if (!Chain.exists(chain))
@@ -299,19 +300,19 @@ public class WalletController {
         return new ResponseEntity<>(walletInfo, HttpStatus.OK);
     }
 
-    @GetMapping("wallets/types")
+    @GetMapping("/types")
     public ResponseEntity<?> getWalletTypes() {
         return new ResponseEntity<>(WalletType.getAll(), HttpStatus.OK);
     }
 
-    @GetMapping("wallets/all")
+    @GetMapping("/all")
     public ResponseEntity<?> getUserWallets(@RequestHeader("authorization") String token) {
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
         List<Wallet> wallets = walletService.getUserWallets(userId);
         return new ResponseEntity<>(wallets, HttpStatus.OK);
     }
 
-    @GetMapping("wallets/transactions/get")
+    @GetMapping("/transactions/get")
     public ResponseEntity<?> getTransactions(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
 
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
@@ -328,7 +329,7 @@ public class WalletController {
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
-    @GetMapping("wallets/transactions/get/all")
+    @GetMapping("/transactions/get/all")
     public ResponseEntity<?> getAllTransactions(@RequestParam Long walletId, @RequestHeader("authorization") String token) {
         Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
         if (!walletService.walletExists(walletId))
