@@ -5,8 +5,11 @@ import pl.sk.coinTracker.Wallet.Wallet;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class TransactionServiceTest {
 
@@ -60,31 +63,133 @@ class TransactionServiceTest {
 
     @Test
     void test_add_new_transaction() {
+        var mockTransactionRepository = mock(TransactionRepository.class);
+        Transaction t = new Transaction();
+        t.setId(1L);
+        t.setDate(new Date());
+        t.setNote("note1");
+        when(mockTransactionRepository.save(t)).thenReturn(t);
+
+        var testService = new TransactionService(mockTransactionRepository);
+        Transaction newTransaction = testService.addNewTransaction(t);
+
+        assertEquals(t.getId(), newTransaction.getId());
+        assertEquals(t.getNote(),newTransaction.getNote());
+        assertEquals(t.getDate(), newTransaction.getDate());
     }
 
     @Test
-    void test_edit_transaction() {
+    void should_edit_transaction() {
+        var transactionRepository = inMemoryTransactionRepository();
+
+        Transaction t = new Transaction();
+        t.setId(1L);
+        t.setPrice(new BigDecimal(3.3));
+        t.setAmount(new BigDecimal(10.0));
+        t.setDate(new Date());
+        t.setNote("test");
+
+
+        Transaction toEDit = new Transaction();
+        toEDit.setId(1L);
+        toEDit.setPrice(new BigDecimal(5.5));
+        toEDit.setAmount(new BigDecimal(15.0));
+        toEDit.setNote("edited");
+        toEDit.setDate(new Date());
+
+
+        var testService = new TransactionService(transactionRepository);
+        transactionRepository.save(t);
+        testService.editTransaction(toEDit);
+
+        Transaction editedTransaction = transactionRepository.findById(1L).get();
+
+        assertEquals(editedTransaction.getPrice(),toEDit.getPrice());
+        assertEquals(editedTransaction.getAmount(),toEDit.getAmount());
+        assertEquals(editedTransaction.getNote(),toEDit.getNote());
+        assertEquals(editedTransaction.getDate(), toEDit.getDate());
 
     }
 
     @Test
-    void test_delete_transaction() {
+    void should_delete_transaction() {
+        var transactionRepository = inMemoryTransactionRepository();
+        Transaction t = new Transaction();
+        t.setId(1L);
 
+        var testService = new TransactionService(transactionRepository);
+        transactionRepository.save(t);
+        testService.deleteTransactionById(1L);
+
+        assertFalse(transactionRepository.findById(1L).isPresent());
     }
 
     @Test
-    void test_delete_transaction_by_coin_id() {
+    void should_delete_transaction_by_coin_id() {
+        var transactionRepository = inMemoryTransactionRepository();
+        Wallet w1 = new Wallet();
+        w1.setId(1L);
 
+        Wallet w2 = new Wallet();
+        w2.setId(2L);
+
+        Transaction t = new Transaction();
+        t.setId(1L);
+        t.setCoinId(1L);
+        t.setWallet(w1);
+
+        Transaction t2 = new Transaction();
+        t2.setId(2L);
+        t2.setCoinId(1l);
+        t2.setWallet(w1);
+
+        Transaction t3 = new Transaction();
+        t3.setId(3L);
+        t3.setCoinId(1l);
+        t3.setWallet(w2);
+
+        var testService = new TransactionService(transactionRepository);
+        transactionRepository.save(t);
+        transactionRepository.save(t2);
+        transactionRepository.save(t3);
+
+        testService.deleteTransactionsByCoinId(1L,1l);
+
+        assertEquals(transactionRepository.findByWallet(w1).size(),0);
+        assertEquals(transactionRepository.findByWallet(w2).size(),1);
     }
 
     @Test
     void test_get_transaction_by_wallet() {
+        var transactionRepository = inMemoryTransactionRepository();
+        Wallet w1 = new Wallet();
+        w1.setId(1L);
 
-    }
+        Wallet w2 = new Wallet();
+        w2.setId(2L);
 
-    @Test
-    void test_get_transaction() {
+        Transaction t = new Transaction();
+        t.setId(1L);
+        t.setCoinId(1L);
+        t.setWallet(w1);
 
+        Transaction t2 = new Transaction();
+        t2.setId(2L);
+        t2.setCoinId(1l);
+        t2.setWallet(w1);
+
+        Transaction t3 = new Transaction();
+        t3.setId(3L);
+        t3.setCoinId(1l);
+        t3.setWallet(w2);
+
+        var testService = new TransactionService(transactionRepository);
+        transactionRepository.save(t);
+        transactionRepository.save(t2);
+        transactionRepository.save(t3);
+
+        assertEquals(transactionRepository.findByWallet(w1).size(),2);
+        assertEquals(transactionRepository.findByWallet(w2).size(),1);
     }
 
     private TransactionRepository inMemoryTransactionRepository() {
@@ -109,17 +214,23 @@ class TransactionServiceTest {
 
             @Override
             public void deleteByCoinId(Long walletId, Long coinId) {
-
+                for(Iterator<Map.Entry<Long, Transaction>> it = transactions.entrySet().iterator(); it.hasNext();){
+                    Map.Entry<Long, Transaction> entry = it.next();
+                    if(entry.getValue().getWallet().getId().equals(walletId) && entry.getValue().getCoinId().equals(coinId))
+                        it.remove();
+                }
             }
 
             @Override
             public List<Transaction> findByWallet(Wallet w) {
-                return null;
+                return transactions.values().stream()
+                        .filter(t -> t.getWallet().getId().equals(w.getId()))
+                        .collect(Collectors.toList());
             }
 
             @Override
             public Optional<Transaction> findById(Long id) {
-                return Optional.empty();
+                return Optional.ofNullable(transactions.get(id));
             }
 
             @Override
@@ -133,8 +244,7 @@ class TransactionServiceTest {
             }
 
             @Override
-            public void deleteById(Long id) {
-
+            public void deleteById(Long id) {transactions.remove(id);
             }
         };
     }

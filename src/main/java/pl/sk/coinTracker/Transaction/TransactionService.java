@@ -28,8 +28,8 @@ public class TransactionService {
         return transactionRepository.findByWallet(w);
     }
 
-    public void addNewTransaction(Transaction transaction) {
-        transactionRepository.save(transaction);
+    public Transaction addNewTransaction(Transaction transaction) {
+        return transactionRepository.save(transaction);
     }
 
     public void editTransaction(Transaction transaction) {
