@@ -175,14 +175,6 @@ class CoinServiceTest {
         assertEquals(coinInfo.get("info").get("id").asLong(), 1L);
     }
 
-    @Test
-    void _test_(){
-        Map<String, String> coin = new HashMap<>();
-        coin.put("balance", "1,431,271.35672549");
-
-        BigDecimal t = new BigDecimal(coin.get("balance").replaceAll(",",""));
-    }
-
     private CoinRepository inMemoryCoinRepository() {
         Map<Long, Coin> coins = new HashMap<>();
         return new CoinRepository() {
