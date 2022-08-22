@@ -256,9 +256,10 @@ public class WalletController {
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
-        Scrapper s = Scrapper.get(chain);
 
         String address = walletService.getWalletById(walletId).getAddress();
+        Scrapper s = Scrapper.get(address,chain);
+
         List<Map<String, String>> tokens = s.getAccountTokens(address);
 
         ObjectNode walletInfo = new ObjectMapper().createObjectNode();
@@ -266,10 +267,10 @@ public class WalletController {
 
         Long id = coinService.getCoinByTicker(s.getNativeCurrencyTicker()).getId();
         BigDecimal price = coinService.getPrice(id);
-        BigDecimal value = price.multiply(BigDecimal.valueOf(s.getNativeCurrencyBalance(address).get("balance")));
+        BigDecimal value = price.multiply(BigDecimal.valueOf(s.getNativeCurrencyBalance().get("balance")));
         BigDecimal totalValue = BigDecimal.ZERO;
 
-        ObjectNode coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(s.getNativeCurrencyBalance(address).get("balance")), price, value, "none");
+        ObjectNode coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(s.getNativeCurrencyBalance().get("balance")), price, value, "none");
         coinsInfo.add(coinInfo);
         totalValue=totalValue.add(value);
 
@@ -278,12 +279,13 @@ public class WalletController {
             if (coinService.coinExistsByTicker(t.get("ticker"))) {
                 id = coinService.getCoinByTicker(t.get("ticker")).getId();
                 price = coinService.getPrice(id);
-                value = price.multiply(BigDecimal.valueOf(Double.parseDouble(t.get("balance"))));
-                coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(Double.parseDouble(t.get("balance"))), price, value, "none");
+                value = price.multiply(new BigDecimal(t.get("balance").replaceAll(",","")));
+                coinInfo = coinService.getCoinInfo(id, new BigDecimal(t.get("balance").replaceAll(",","")), price, value, "none");
                 coinsInfo.add(coinInfo);
                 totalValue=totalValue.add(value);
             }
         }
+
         Wallet wallet = walletService.getWalletById(walletId);
 
         if (totalValue.compareTo(wallet.getAth()) > 0) {
