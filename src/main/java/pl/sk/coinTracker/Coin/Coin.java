@@ -5,13 +5,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+
 import javax.persistence.*;
 
 @Data
 @Table(name = "coins")
 @Entity
 @NoArgsConstructor
-public class Coin {
+public class Coin{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +32,10 @@ public class Coin {
         this.ticker = ticker;
         this.identifier = identifier;
         this.coinrank = coinrank;
+    }
+
+    public int compareByCoinRank(Coin other) {
+        return (coinrank < other.getCoinrank() && coinrank != 0) ? 1 : -1;
     }
 
     public ObjectNode toJson() {

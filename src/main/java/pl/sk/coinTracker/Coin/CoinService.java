@@ -27,10 +27,8 @@ public class CoinService {
     }
 
     public boolean coinExistsByTicker(String ticker) {
-
-        if (coinRepository.findByTicker(ticker).size() > 2)
-            return false;
-        return coinRepository.findByTicker(ticker).stream().findFirst().isPresent();
+        return coinRepository.findByTicker(ticker).size() > 2 ?
+                false : coinRepository.findByTicker(ticker).stream().findFirst().isPresent();
     }
 
     public List<Coin> getAll() {
@@ -42,15 +40,10 @@ public class CoinService {
     }
 
     public Coin getCoinByTicker(String ticker) {
-
-        if (coinRepository.findByTicker(ticker).size() == 2) {
-            List<Coin> coins = coinRepository.findByTicker(ticker);
-
-            if ((coins.stream().findFirst().get().getCoinrank() < coins.get(coins.size() - 1).getCoinrank()) && coins.stream().findFirst().get().getCoinrank() != 0)
-                return coins.stream().findFirst().get();
-            else if ((coins.get(coins.size() - 1).getCoinrank() < coins.stream().findFirst().get().getCoinrank()) && coins.get(coins.size() - 1).getCoinrank() != 0)
-                return coins.get(coins.size() - 1);
-        }
+        if (coinRepository.findByTicker(ticker).size() > 1)
+            return coinRepository.findByTicker(ticker).stream()
+                    .sorted(Coin::compareByCoinRank)
+                    .findFirst().get();
         return coinRepository.findByTicker(ticker).stream().findFirst().get();
     }
 
