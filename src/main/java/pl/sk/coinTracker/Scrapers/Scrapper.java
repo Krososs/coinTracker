@@ -32,6 +32,7 @@ public class Scrapper {
         return switch (chain) {
             case "ETHEREUM" -> new Scrapper(accountAddress, Chain.ETHEREUM);
             case "BINANCE_SMART_CHAIN" -> new Scrapper(accountAddress, Chain.BINANCE_SMART_CHAIN);
+            case "POLYGON" -> new Scrapper(accountAddress, Chain.POLYGON);
             default -> new Scrapper(accountAddress, Chain.ETHEREUM);
         };
     }
@@ -80,6 +81,7 @@ public class Scrapper {
         return  switch (chain){
             case BINANCE_SMART_CHAIN -> "bnb";
             case ETHEREUM -> "eth";
+            case POLYGON -> "matic";
         };
     }
 
@@ -87,6 +89,7 @@ public class Scrapper {
         return  switch (chain){
             case BINANCE_SMART_CHAIN -> "https://bscscan.com//address/"+accountAddress;
             case ETHEREUM -> "https://etherscan.io//address/"+accountAddress;
+            case POLYGON -> "https://polygonscan.com/address/"+accountAddress;
         };
     }
 
@@ -94,6 +97,7 @@ public class Scrapper {
         return switch (chain){
             case BINANCE_SMART_CHAIN -> "li.list-custom.list-custom-BEP-20";
             case ETHEREUM -> "li.list-custom.list-custom-ERC20";
+            case POLYGON -> "li.list-custom.list-custom-ERC-20";
         };
     }
 

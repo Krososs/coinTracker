@@ -5,7 +5,8 @@ import java.util.List;
 
 public enum Chain {
     ETHEREUM,
-    BINANCE_SMART_CHAIN;
+    BINANCE_SMART_CHAIN,
+    POLYGON;
 
     public static List<String> getAll() {
         List<String> chains = new ArrayList<>();
