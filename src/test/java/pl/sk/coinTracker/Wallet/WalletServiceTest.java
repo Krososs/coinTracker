@@ -183,8 +183,7 @@ class WalletServiceTest {
 
             @Override
             public Wallet save(Wallet wallet) {
-                wallets.put(wallet.getId(), wallet);
-                return wallets.get(wallet.getId());
+                return wallets.put(wallet.getId(), wallet);
             }
 
             @Override

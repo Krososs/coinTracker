@@ -12,8 +12,8 @@ public class CoinCategoryService {
         this.categoryRepository = categoryRepository;
     }
 
-    public void createNewCategory(CoinCategory category) {
-        categoryRepository.save(category);
+    public CoinCategory createNewCategory(CoinCategory category) {
+        return categoryRepository.save(category);
     }
 
     public CoinCategory getCategoryById(Long id){
