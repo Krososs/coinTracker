@@ -22,6 +22,7 @@ import pl.sk.coinTracker.Security.AuthUtil;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,10 +48,9 @@ public class WalletController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createWallet(@ModelAttribute Wallet wallet, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> createWallet(@ModelAttribute Wallet wallet, Principal p) {
 
-        String username = AuthUtil.getUsernameFromToken(token);
-        User user = userService.getUserFromUsernamne(username);
+        User user = userService.getUserFromUsernamne(p.getName());
 
         if (wallet.getName().length() == 0)
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_NAME.ToString()), HttpStatus.CONFLICT);
@@ -68,9 +68,9 @@ public class WalletController {
     }
 
     @PatchMapping("/edit")
-    public ResponseEntity<?> editWallet(@ModelAttribute Wallet wallet, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> editWallet(@ModelAttribute Wallet wallet, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.walletExists(wallet.getId()))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.userIsOwner(userId, wallet.getId()))
@@ -85,9 +85,9 @@ public class WalletController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteWallet(@RequestParam Long walletId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> deleteWallet(@RequestParam Long walletId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.userIsOwner(userId, walletId))
@@ -99,9 +99,9 @@ public class WalletController {
     }
 
     @PostMapping("/coin/add")
-    public ResponseEntity<?> addNewCoin(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> addNewCoin(@RequestParam Long walletId, @RequestParam Long coinId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
 
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
@@ -117,9 +117,9 @@ public class WalletController {
     }
 
     @DeleteMapping("/coin/delete")
-    public ResponseEntity<?> deleteCoin(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> deleteCoin(@RequestParam Long walletId, @RequestParam Long coinId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
 
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
@@ -133,52 +133,52 @@ public class WalletController {
     }
 
     @GetMapping("/blacklist/get")
-    public ResponseEntity<?> getBlacklistedCoins(@RequestParam Long walletId,@RequestHeader("authorization") String token) {
+    public ResponseEntity<?> getBlacklistedCoins(@RequestParam Long walletId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
-        if(!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
+        if (!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_TYPE.ToString()), HttpStatus.CONFLICT);
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
-        return new ResponseEntity<>(blacklistedCoinService.getBlacklistedCoins(walletId),HttpStatus.OK);
+        return new ResponseEntity<>(blacklistedCoinService.getBlacklistedCoins(walletId), HttpStatus.OK);
     }
 
 
     @PostMapping("/blacklist/add")
-    public ResponseEntity<?> addCoinToTheBlacklist(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> addCoinToTheBlacklist(@RequestParam Long walletId, @RequestParam Long coinId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
-        if(!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
+        if (!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_TYPE.ToString()), HttpStatus.CONFLICT);
         if (!coinService.coinExistsById(coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
-        if(blacklistedCoinService.coinIsBlacklisted(walletId,coinId))
+        if (blacklistedCoinService.coinIsBlacklisted(walletId, coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_ALREADY_BLACKLISTED.ToString()), HttpStatus.CONFLICT);
 
-        blacklistedCoinService.addCoinToBlackList(new BlacklistedCoin(walletId,coinId));
+        blacklistedCoinService.addCoinToBlackList(new BlacklistedCoin(walletId, coinId));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/blacklist/remove")
-    public ResponseEntity<?> removeCoinFromBlackList(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> removeCoinFromBlackList(@RequestParam Long walletId, @RequestParam Long coinId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
-        if(!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
+        if (!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_TYPE.ToString()), HttpStatus.CONFLICT);
         if (!coinService.coinExistsById(coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
-        if(!blacklistedCoinService.coinIsBlacklisted(walletId,coinId))
+        if (!blacklistedCoinService.coinIsBlacklisted(walletId, coinId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_NOT_BLACKLISTED.ToString()), HttpStatus.CONFLICT);
 
         blacklistedCoinService.removeCoinFromBlackList(walletId, coinId);
@@ -186,9 +186,9 @@ public class WalletController {
     }
 
     @PostMapping("/transactions/add")
-    public ResponseEntity<?> addTransaction(@RequestParam Long walletId, @ModelAttribute Transaction transaction, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> addTransaction(@RequestParam Long walletId, @ModelAttribute Transaction transaction, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (transaction.getAmount().compareTo(BigDecimal.ZERO) <= 0)
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_TRANSACTION_AMOUNT.ToString()), HttpStatus.CONFLICT);
         if (!walletService.userIsOwner(userId, walletId))
@@ -203,12 +203,12 @@ public class WalletController {
     }
 
     @DeleteMapping("/transactions/delete")
-    public ResponseEntity<?> deleteTransaction(@RequestParam Long transactionId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> deleteTransaction(@RequestParam Long transactionId, Principal p) {
 
         if (!transactionService.transactionExists(transactionId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.TRANSACTION_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         Long walletId = transactionService.getTransactionById(transactionId).getWallet().getId();
 
         if (!walletService.userIsOwner(userId, walletId))
@@ -220,7 +220,7 @@ public class WalletController {
     }
 
     @PatchMapping("/transactions/edit")
-    public ResponseEntity<?> editTransaction(@ModelAttribute Transaction transaction, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> editTransaction(@ModelAttribute Transaction transaction, Principal p) {
 
         if (transaction.getId() == null || !transactionService.transactionExists(transaction.getId()))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.TRANSACTION_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
@@ -229,7 +229,7 @@ public class WalletController {
         transaction.setWallet(t.getWallet());
         transaction.setCoinId(t.getCoinId());
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         Long walletId = transaction.getWallet().getId();
 
         if (!walletService.userIsOwner(userId, walletId))
@@ -243,11 +243,11 @@ public class WalletController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<?> getWalletInfo(@RequestParam Long walletId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> getWalletInfo(@RequestParam Long walletId, Principal p) {
 
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
@@ -260,13 +260,13 @@ public class WalletController {
 
             if (t.getType().equals("BUY")) {
                 coins.merge(t.getCoinId(), t.getAmount(), (a, b) -> b.add(a));
-                totalSpend=totalSpend.add(t.getPrice().multiply(t.getAmount()));
+                totalSpend = totalSpend.add(t.getPrice().multiply(t.getAmount()));
             } else {
                 if (coins.get(t.getCoinId()) == null)
                     coins.put(t.getCoinId(), t.getAmount().negate());
                 else
                     coins.put(t.getCoinId(), coins.get(t.getCoinId()).subtract(t.getAmount()));
-                totalSpend=totalSpend.subtract(t.getAmount().multiply(t.getPrice()));
+                totalSpend = totalSpend.subtract(t.getAmount().multiply(t.getPrice()));
             }
         }
 
@@ -282,7 +282,7 @@ public class WalletController {
             value = price.multiply(coin.getValue());
             ObjectNode coinInfo = coinService.getCoinInfo(coin.getKey(), coin.getValue(), price, value, transactionService.getInitialTransaction(walletId, coin.getKey()).getDate().toString());
             coinsInfo.add(coinInfo);
-            totalValue=totalValue.add(value);
+            totalValue = totalValue.add(value);
         }
 
         BigDecimal pnl = walletService.getPercentageChange(totalSpend, totalValue);
@@ -303,19 +303,19 @@ public class WalletController {
     }
 
     @GetMapping("/chain/info")
-    public ResponseEntity<?> getOnChainWalletInfo(@RequestParam String chain, @RequestParam Long walletId, @RequestHeader("authorization") String token) throws IOException{
+    public ResponseEntity<?> getOnChainWalletInfo(@RequestParam String chain, @RequestParam Long walletId, Principal p) throws IOException {
 
         if (!Chain.exists(chain))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CHAIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.userIsOwner(userId, walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
 
         String address = walletService.getWalletById(walletId).getAddress();
-        Scrapper s = Scrapper.get(address,chain);
+        Scrapper s = Scrapper.get(address, chain);
 
         List<Map<String, String>> tokens = s.getAccountTokens(address);
 
@@ -329,17 +329,17 @@ public class WalletController {
 
         ObjectNode coinInfo = coinService.getCoinInfo(id, BigDecimal.valueOf(s.getNativeCurrencyBalance().get("balance")), price, value, "none");
         coinsInfo.add(coinInfo);
-        totalValue=totalValue.add(value);
+        totalValue = totalValue.add(value);
 
         for (Map<String, String> t : tokens) {
 
             if (coinService.coinExistsByTicker(t.get("ticker"))) {
                 id = coinService.getCoinByTicker(t.get("ticker")).getId();
                 price = coinService.getPrice(id);
-                value = price.multiply(new BigDecimal(t.get("balance").replaceAll(",","")));
-                coinInfo = coinService.getCoinInfo(id, new BigDecimal(t.get("balance").replaceAll(",","")), price, value, "none");
+                value = price.multiply(new BigDecimal(t.get("balance").replaceAll(",", "")));
+                coinInfo = coinService.getCoinInfo(id, new BigDecimal(t.get("balance").replaceAll(",", "")), price, value, "none");
                 coinsInfo.add(coinInfo);
-                totalValue=totalValue.add(value);
+                totalValue = totalValue.add(value);
             }
         }
 
@@ -372,9 +372,9 @@ public class WalletController {
     }
 
     @GetMapping("/transactions/get")
-    public ResponseEntity<?> getTransactions(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> getTransactions(@RequestParam Long walletId, @RequestParam Long coinId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.userIsOwner(userId, walletId))
@@ -389,8 +389,8 @@ public class WalletController {
     }
 
     @GetMapping("/transactions/get/all")
-    public ResponseEntity<?> getAllTransactions(@RequestParam Long walletId, @RequestHeader("authorization") String token) {
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+    public ResponseEntity<?> getAllTransactions(@RequestParam Long walletId, Principal p) {
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if (!walletService.walletExists(walletId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!walletService.userIsOwner(userId, walletId))

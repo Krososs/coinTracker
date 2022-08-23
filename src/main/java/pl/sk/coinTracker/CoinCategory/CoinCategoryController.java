@@ -10,6 +10,7 @@ import pl.sk.coinTracker.Support.Validation;
 import pl.sk.coinTracker.User.UserService;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @RestController
 public class CoinCategoryController {
@@ -23,15 +24,15 @@ public class CoinCategoryController {
     }
 
     @GetMapping("categories/get")
-    public ResponseEntity<?> getUserCategories(@RequestHeader("authorization") String token) {
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+    public ResponseEntity<?> getUserCategories(Principal p) {
+        Long userId = userService.getUserIdFromUsername(p.getName());
         return new ResponseEntity<>(categoryService.getUserCategories(userId), HttpStatus.OK);
     }
 
     @PostMapping("categories/create")
-    public ResponseEntity<?> createCategory(@Valid CoinCategory category, @RequestHeader("authorization") String token, BindingResult result) {
+    public ResponseEntity<?> createCategory(@Valid CoinCategory category, Principal p, BindingResult result) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
 
         if (categoryService.categoryExists(userId, category.getName()))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_ALREADY_EXIST.ToString()), HttpStatus.CONFLICT);
@@ -45,9 +46,9 @@ public class CoinCategoryController {
     }
 
     @DeleteMapping("categories/delete")
-    public ResponseEntity<?> deleteCategory(@RequestParam Long categoryId, @RequestHeader("authorization") String token) {
+    public ResponseEntity<?> deleteCategory(@RequestParam Long categoryId, Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
 
         if (!categoryService.categoryExists(categoryId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);

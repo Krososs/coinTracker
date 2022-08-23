@@ -10,6 +10,7 @@ import pl.sk.coinTracker.Support.Response;
 import pl.sk.coinTracker.Support.Validation;
 import pl.sk.coinTracker.User.UserService;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -28,8 +29,8 @@ public class CategoryContentController {
     }
 
     @GetMapping("categories/content/get")
-    public ResponseEntity<?> getContent(@RequestParam Long categoryId, @RequestHeader("authorization") String token) {
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+    public ResponseEntity<?> getContent(@RequestParam Long categoryId, Principal p) {
+        Long userId = userService.getUserIdFromUsername(p.getName());
         if(!categoryService.categoryExists(categoryId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
         if (!categoryService.userIsOwner(userId, categoryId))
@@ -41,9 +42,9 @@ public class CategoryContentController {
     }
 
     @PostMapping("categories/content/add")
-    public ResponseEntity<?> categorizeCoin(@RequestParam Long coinId, @RequestParam Long categoryId,@RequestHeader("authorization") String token) {
+    public ResponseEntity<?> categorizeCoin(@RequestParam Long coinId, @RequestParam Long categoryId,Principal p) {
         CategoryContent content = new CategoryContent(categoryId, coinId);
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
 
         if(!categoryService.categoryExists(categoryId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
@@ -59,9 +60,9 @@ public class CategoryContentController {
     }
 
     @DeleteMapping("categories/content/delete")
-    public ResponseEntity<?> decategorizeCoin(@RequestParam Long contentId,@RequestHeader("authorization") String token) {
+    public ResponseEntity<?> decategorizeCoin(@RequestParam Long contentId,Principal p) {
 
-        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        Long userId = userService.getUserIdFromUsername(p.getName());
 
         if(!contentService.contentExists(contentId))
             return new ResponseEntity<>(Validation.getErrorResponse(Response.CATEGORY_CONTENT_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);

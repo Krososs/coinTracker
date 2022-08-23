@@ -13,6 +13,7 @@ import pl.sk.coinTracker.Support.Response;
 import pl.sk.coinTracker.Support.Validation;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,9 +61,7 @@ public class UserController {
 
             return new ResponseEntity<>(data, HttpStatus.OK);
 
-        } catch (TokenExpiredException exception) {
-            return new ResponseEntity<>(Validation.getErrorResponse(Response.TOKEN_EXPIRED.ToString()), HttpStatus.UNAUTHORIZED);
-        } catch (JWTDecodeException exception) {
+        } catch (TokenExpiredException | JWTDecodeException exception) {
             return new ResponseEntity<>(Validation.getErrorResponse(Response.TOKEN_EXPIRED.ToString()), HttpStatus.UNAUTHORIZED);
         }
     }
@@ -82,9 +81,8 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<?> getUserInfo(@RequestHeader("authorization") String token) {
-        String username = AuthUtil.getUsernameFromToken(token);
-        User user = userService.getUserFromUsernamne(username);
+    public ResponseEntity<?> getUserInfo(Principal p) {
+        User user = userService.getUserFromUsernamne(p.getName());
         return new ResponseEntity<>(user.toJson(), HttpStatus.OK);
     }
 }
