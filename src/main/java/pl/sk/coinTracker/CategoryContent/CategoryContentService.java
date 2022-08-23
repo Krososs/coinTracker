@@ -12,31 +12,29 @@ public class CategoryContentService {
         this.contentRepository = contentRepository;
     }
 
-    public void categorize(CategoryContent content){
-        contentRepository.save(content);
+    public CategoryContent categorize(CategoryContent content) {
+        return contentRepository.save(content);
     }
-    public void decategorize(Long contentId){
+
+    public void decategorize(Long contentId) {
         contentRepository.deleteById(contentId);
     }
-    public boolean categorized(Long categoryId, Long coinId){
+
+    public boolean categorized(Long categoryId, Long coinId) {
         return contentRepository.findByCategoryId(categoryId)
                 .stream()
                 .anyMatch(content -> content.getCoinId().equals(coinId));
     }
 
-    public boolean contentExists(Long contentId){
+    public boolean contentExists(Long contentId) {
         return contentRepository.existsById(contentId);
     }
 
-    public CategoryContent getById(Long id){
+    public CategoryContent getById(Long id) {
         return contentRepository.findById(id).get();
     }
 
-    public List<CategoryContent> getByCategoryId(Long categoryId){
+    public List<CategoryContent> getByCategoryId(Long categoryId) {
         return contentRepository.findByCategoryId(categoryId);
-    }
-
-    public void deleteContent(Long contentId){
-        contentRepository.deleteById(contentId);
     }
 }

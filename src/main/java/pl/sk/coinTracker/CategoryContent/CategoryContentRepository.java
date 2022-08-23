@@ -1,11 +1,18 @@
 package pl.sk.coinTracker.CategoryContent;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import pl.sk.coinTracker.Transaction.Transaction;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface CategoryContentRepository extends JpaRepository<CategoryContent, Long> {
+public interface CategoryContentRepository {
     List<CategoryContent> findByCategoryId(Long id);
+
+    Optional<CategoryContent> findById(Long id);
+
+    boolean existsById(Long id);
+
+    CategoryContent save(CategoryContent content);
+
+    void deleteById(Long id);
 }
