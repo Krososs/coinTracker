@@ -17,6 +17,9 @@ public enum Response {
     WRONG_WALLET_TYPE,
     WALLET_ALREADY_EXIST,
     COIN_DOES_NOT_EXIST,
+    COIN_ALREADY_BLACKLISTED,
+    COIN_NOT_BLACKLISTED,
+    COIN_ALREADY_CATEGORIZED,
     TRANSACTION_DOES_NOT_EXIST,
     WRONG_TRANSACTION_AMOUNT,
     WRONG_ADDRESS,
@@ -24,7 +27,6 @@ public enum Response {
     CHAIN_DOES_NOT_EXIST,
     CATEGORY_ALREADY_EXIST,
     CATEGORY_DOES_NOT_EXIST,
-    COIN_ALREADY_CATEGORIZED,
     USER_HAS_NO_RIGHTS_TO_CATEGORY,
     CATEGORY_CONTENT_DOES_NOT_EXIST,
     TOKEN_EXPIRED;
@@ -58,7 +60,9 @@ public enum Response {
             case CATEGORY_DOES_NOT_EXIST -> "Category does not exist";
             case USER_HAS_NO_RIGHTS_TO_CATEGORY -> "You have no rights to given category";
             case COIN_ALREADY_CATEGORIZED -> "Chosen coin is already categorized";
-            case CATEGORY_CONTENT_DOES_NOT_EXIST -> "Chosen contet does not exist";
+            case COIN_ALREADY_BLACKLISTED -> "Chosen coin is already blacklisted";
+            case COIN_NOT_BLACKLISTED -> "Chosen coin is not blacklisted";
+            case CATEGORY_CONTENT_DOES_NOT_EXIST -> "Chosen content does not exist";
         };
     }
 }

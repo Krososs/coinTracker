@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.sk.coinTracker.BlacklistedCoin.BlacklistedCoin;
+import pl.sk.coinTracker.BlacklistedCoin.BlacklistedCoinService;
 import pl.sk.coinTracker.Coin.CoinService;
 import pl.sk.coinTracker.Scrapers.Scrapper;
 import pl.sk.coinTracker.Support.Chain;
@@ -33,12 +35,14 @@ public class WalletController {
     private final WalletService walletService;
     private final UserService userService;
     private final CoinService coinService;
+    private final BlacklistedCoinService blacklistedCoinService;
     private final TransactionService transactionService;
 
-    public WalletController(WalletService walletService, UserService userService, CoinService coinService, TransactionService transactionService) {
+    public WalletController(WalletService walletService, UserService userService, CoinService coinService, BlacklistedCoinService blacklistedCoinService, TransactionService transactionService) {
         this.walletService = walletService;
         this.userService = userService;
         this.coinService = coinService;
+        this.blacklistedCoinService = blacklistedCoinService;
         this.transactionService = transactionService;
     }
 
@@ -125,6 +129,59 @@ public class WalletController {
             return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
 
         transactionService.deleteTransactionsByCoinId(walletId, coinId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/blacklist/get")
+    public ResponseEntity<?> getBlacklistedCoins(@RequestParam Long walletId,@RequestHeader("authorization") String token) {
+
+        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        if (!walletService.walletExists(walletId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
+        if(!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_TYPE.ToString()), HttpStatus.CONFLICT);
+        if (!walletService.userIsOwner(userId, walletId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
+
+        return new ResponseEntity<>(blacklistedCoinService.getBlacklistedCoins(walletId),HttpStatus.OK);
+    }
+
+
+    @PostMapping("/blacklist/add")
+    public ResponseEntity<?> addCoinToTheBlacklist(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
+
+        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        if (!walletService.walletExists(walletId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
+        if(!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_TYPE.ToString()), HttpStatus.CONFLICT);
+        if (!coinService.coinExistsById(coinId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
+        if (!walletService.userIsOwner(userId, walletId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
+        if(blacklistedCoinService.coinIsBlacklisted(walletId,coinId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_ALREADY_BLACKLISTED.ToString()), HttpStatus.CONFLICT);
+
+        blacklistedCoinService.addCoinToBlackList(new BlacklistedCoin(walletId,coinId));
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/blacklist/remove")
+    public ResponseEntity<?> removeCoinFromBlackList(@RequestParam Long walletId, @RequestParam Long coinId, @RequestHeader("authorization") String token) {
+
+        Long userId = userService.getUserIdFromUsername(AuthUtil.getUsernameFromToken(token));
+        if (!walletService.walletExists(walletId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.WALLET_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
+        if(!walletService.getWalletById(walletId).getType().equals(WalletType.ON_CHAIN))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.WRONG_WALLET_TYPE.ToString()), HttpStatus.CONFLICT);
+        if (!coinService.coinExistsById(coinId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_DOES_NOT_EXIST.ToString()), HttpStatus.NOT_FOUND);
+        if (!walletService.userIsOwner(userId, walletId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.USER_HAS_NO_RIGHTS_TO_WALLET.ToString()), HttpStatus.CONFLICT);
+        if(!blacklistedCoinService.coinIsBlacklisted(walletId,coinId))
+            return new ResponseEntity<>(Validation.getErrorResponse(Response.COIN_NOT_BLACKLISTED.ToString()), HttpStatus.CONFLICT);
+
+        blacklistedCoinService.removeCoinFromBlackList(walletId, coinId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

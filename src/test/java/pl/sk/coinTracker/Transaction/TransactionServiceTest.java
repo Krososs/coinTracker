@@ -214,11 +214,7 @@ class TransactionServiceTest {
 
             @Override
             public void deleteByCoinId(Long walletId, Long coinId) {
-                for(Iterator<Map.Entry<Long, Transaction>> it = transactions.entrySet().iterator(); it.hasNext();){
-                    Map.Entry<Long, Transaction> entry = it.next();
-                    if(entry.getValue().getWallet().getId().equals(walletId) && entry.getValue().getCoinId().equals(coinId))
-                        it.remove();
-                }
+                transactions.entrySet().removeIf(entry -> entry.getValue().getWallet().getId().equals(walletId) && entry.getValue().getCoinId().equals(coinId));
             }
 
             @Override
