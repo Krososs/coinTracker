@@ -308,7 +308,7 @@ public class WalletController {
         List<Map<String, String>> tokens = s.getAccountTokens(address);
 
         ObjectNode walletInfo = new ObjectMapper().createObjectNode();
-        ArrayNode coinsInfo = walletInfo.putArray("coins");
+        ArrayNode coinsInfo = walletInfo.putArray("coinsAmount");
 
         Long id = coinService.getCoinByTicker(s.getNativeCurrencyTicker()).getId();
         BigDecimal price = coinService.getPrice(id);
