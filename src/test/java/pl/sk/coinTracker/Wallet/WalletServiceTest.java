@@ -1,12 +1,10 @@
 package pl.sk.coinTracker.Wallet;
 
 import org.junit.jupiter.api.Test;
+import pl.sk.coinTracker.Transaction.Transaction;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -104,6 +102,44 @@ class WalletServiceTest {
         var testService = new WalletService(null);
         assertEquals(testService.getPercentageChange(new BigDecimal("0"), new BigDecimal("1")), new BigDecimal("0.00"));
         assertEquals(testService.getPercentageChange(new BigDecimal("0"), new BigDecimal("0")), new BigDecimal("0.00"));
+    }
+
+    @Test
+    void should_count_coins_amount(){
+        Wallet wallet = new Wallet();
+        wallet.setId(1L);
+
+        List <Transaction> transactions = List.of(
+                new Transaction(1L,"BUY",wallet,new BigDecimal(3),new BigDecimal(1.1), new Date(),"note"),
+                new Transaction(1L,"BUY",wallet,new BigDecimal(2),new BigDecimal(1.1), new Date(),"note"),
+                new Transaction(1L,"SELL",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note"),
+                new Transaction(2L,"BUY",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note"),
+                new Transaction(2L,"SELL",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note")
+        );
+
+        var testService = new WalletService(null);
+
+        Map<Long, BigDecimal> coinsAmount = testService.countCoinsAmount(transactions);
+        assertEquals(2, coinsAmount.size());
+        assertEquals(new BigDecimal(4),coinsAmount.get(1L));
+        assertEquals(new BigDecimal(0),coinsAmount.get(2L));
+    }
+
+    @Test
+    void should_count_total_spend(){
+        Wallet wallet = new Wallet();
+        wallet.setId(1L);
+
+        List <Transaction> transactions = List.of(
+                new Transaction(1L,"BUY",wallet,new BigDecimal(3),new BigDecimal(1.1), new Date(),"note"),
+                new Transaction(1L,"SELL",wallet,new BigDecimal(2),new BigDecimal(1.1), new Date(),"note"),
+                new Transaction(2L,"BUY",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note"),
+                new Transaction(2L,"SELL",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note")
+        );
+
+        var testService = new WalletService(null);
+        BigDecimal totalSpend = testService.getTotalSpend(transactions);
+        assertEquals(new BigDecimal(1.1), totalSpend);
     }
 
     @Test

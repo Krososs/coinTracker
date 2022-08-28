@@ -1,10 +1,13 @@
 package pl.sk.coinTracker.Wallet;
 
 import org.springframework.stereotype.Service;
+import pl.sk.coinTracker.Transaction.Transaction;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class WalletService {
@@ -45,6 +48,34 @@ public class WalletService {
             return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_EVEN);
         double percentageChange = (totalValue.doubleValue() - totalSpend.doubleValue()) / totalSpend.doubleValue() * 100.0;
         return new BigDecimal(percentageChange).setScale(2, RoundingMode.HALF_EVEN);
+    }
+
+    public Map<Long, BigDecimal> countCoinsAmount(List<Transaction> walletTransactions) {
+        Map<Long, BigDecimal> coins = new HashMap<>(); // id/amount
+        walletTransactions.forEach(
+                t -> {
+                    if (t.getType().equals("BUY")) {
+                        coins.merge(t.getCoinId(), t.getAmount(), (a, b) -> b.add(a));
+                    } else {
+                        if (coins.get(t.getCoinId()) == null)
+                            coins.put(t.getCoinId(), t.getAmount().negate());
+                        else
+                            coins.put(t.getCoinId(), coins.get(t.getCoinId()).subtract(t.getAmount()));
+                    }
+                }
+        );
+        return coins;
+    }
+
+    public BigDecimal getTotalSpend(List<Transaction> walletTransactions) {
+        BigDecimal totalSpend = BigDecimal.ZERO;
+        for (Transaction t : walletTransactions) {
+            if (t.getType().equals("BUY"))
+                totalSpend = totalSpend.add(t.getPrice().multiply(t.getAmount()));
+            else
+                totalSpend = totalSpend.subtract(t.getAmount().multiply(t.getPrice()));
+        }
+        return totalSpend;
     }
 
     public boolean walletExists(Long id) {

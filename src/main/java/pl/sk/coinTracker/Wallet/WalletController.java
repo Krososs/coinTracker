@@ -253,30 +253,18 @@ public class WalletController {
 
         Wallet wallet = walletService.getWalletById(walletId);
         List<Transaction> walletTransactions = wallet.getTransactions();
-        Map<Long, BigDecimal> coins = new HashMap<>(); // id/amount
-        BigDecimal totalSpend = BigDecimal.ZERO;
+        Map<Long, BigDecimal> coinsAmount = walletService.countCoinsAmount(walletTransactions); // id/amount
 
-        for (Transaction t : walletTransactions) {
-
-            if (t.getType().equals("BUY")) {
-                coins.merge(t.getCoinId(), t.getAmount(), (a, b) -> b.add(a));
-                totalSpend = totalSpend.add(t.getPrice().multiply(t.getAmount()));
-            } else {
-                if (coins.get(t.getCoinId()) == null)
-                    coins.put(t.getCoinId(), t.getAmount().negate());
-                else
-                    coins.put(t.getCoinId(), coins.get(t.getCoinId()).subtract(t.getAmount()));
-                totalSpend = totalSpend.subtract(t.getAmount().multiply(t.getPrice()));
-            }
-        }
+        BigDecimal totalSpend = walletService.getTotalSpend(walletTransactions);
+        BigDecimal totalValue = BigDecimal.ZERO;
 
         ObjectNode walletInfo = new ObjectMapper().createObjectNode();
-        ArrayNode coinsInfo = walletInfo.putArray("coins");
-        BigDecimal totalValue = BigDecimal.ZERO;
+        ArrayNode coinsInfo = walletInfo.putArray("coinsAmount");
+
         BigDecimal price;
         BigDecimal value;
 
-        for (Map.Entry<Long, BigDecimal> coin : coins.entrySet()) {
+        for (Map.Entry<Long, BigDecimal> coin : coinsAmount.entrySet()) {
 
             price = coinService.getPrice(coin.getKey());
             value = price.multiply(coin.getValue());
@@ -350,8 +338,8 @@ public class WalletController {
             walletService.editWallet(wallet.getName(), walletId);
         }
 
-        walletInfo.put("name", walletService.getWalletById(walletId).getName());
-        walletInfo.put("type", walletService.getWalletById(walletId).getType().toString());
+        walletInfo.put("name", wallet.getName());
+        walletInfo.put("type", wallet.getType().toString());
         walletInfo.put("id", walletId);
         walletInfo.put("ath", wallet.getAth().round(new MathContext(3)));
         walletInfo.put("totalValue", totalValue.round(new MathContext(3)));
