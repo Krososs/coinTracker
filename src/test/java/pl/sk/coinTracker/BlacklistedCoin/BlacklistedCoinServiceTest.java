@@ -38,9 +38,8 @@ class BlacklistedCoinServiceTest {
 
         testService.removeCoinFromBlackList(1L, 1L);
 
-        assertEquals(blacklistedCoinRepository.findByWalletId(1L).size(), 0);
-        assertEquals(blacklistedCoinRepository.findByWalletId(2L).size(), 1);
-
+        assertEquals( 0,blacklistedCoinRepository.findByWalletId(1L).size());
+        assertEquals(1,blacklistedCoinRepository.findByWalletId(2L).size());
     }
 
     @Test
@@ -59,8 +58,8 @@ class BlacklistedCoinServiceTest {
         blacklistedCoinRepository.save(coin2);
         blacklistedCoinRepository.save(coin3);
 
-        assertEquals(blacklistedCoinRepository.findByWalletId(1L).size(), 2);
-        assertEquals(blacklistedCoinRepository.findByWalletId(2L).size(), 1);
+        assertEquals(2,blacklistedCoinRepository.findByWalletId(1L).size());
+        assertEquals( 1,blacklistedCoinRepository.findByWalletId(2L).size());
     }
 
     @Test

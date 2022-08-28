@@ -35,7 +35,7 @@ public class Coin{
     }
 
     public int compareByCoinRank(Coin other) {
-        return (coinrank < other.getCoinrank() && coinrank != 0) ? 1 : -1;
+        return (coinrank < other.getCoinrank() && coinrank != 0) ? 1 : 0;
     }
 
     public ObjectNode toJson() {

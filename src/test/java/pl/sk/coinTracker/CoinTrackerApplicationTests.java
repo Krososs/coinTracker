@@ -9,5 +9,4 @@ class CoinTrackerApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

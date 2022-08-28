@@ -29,7 +29,7 @@ class UserServiceTest {
         assertEquals(user.getId(), createdUser.getId());
         assertEquals(user.getUsername(), createdUser.getUsername());
         assertEquals(user.getPassword(), createdUser.getPassword());
-        assertEquals(createdUser.getRole(), "ROLE_USER");
+        assertEquals( "ROLE_USER",createdUser.getRole());
     }
 
     @Test
@@ -44,7 +44,6 @@ class UserServiceTest {
         userRepository.save(user);
 
         assertTrue(testService.usernameExists("user"));
-
     }
 
     @Test
@@ -59,7 +58,6 @@ class UserServiceTest {
         userRepository.save(user);
 
         assertFalse(testService.usernameExists("user"));
-
     }
 
     @Test
@@ -88,7 +86,6 @@ class UserServiceTest {
         userRepository.save(user);
 
         assertFalse(testService.emailExists("email2"));
-
     }
 
     @Test
@@ -131,8 +128,7 @@ class UserServiceTest {
         var testService = new UserService(userRepository, null);
         userRepository.save(user);
 
-        assertEquals(testService.getUserIdFromUsername("user"),1L);
-
+        assertEquals(1L,testService.getUserIdFromUsername("user"));
     }
 
     private UserRepository inMemoryUserRepository() {
@@ -160,5 +156,4 @@ class UserServiceTest {
             }
         };
     }
-
 }

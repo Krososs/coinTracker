@@ -66,9 +66,8 @@ class CoinServiceTest {
 
         Coin givenCoin = testService.getCoinByTicker("ticker");
 
-        assertEquals(givenCoin.getCoinrank(), 1L);
-        assertEquals(givenCoin.getId(), 1L);
-
+        assertEquals(1L,givenCoin.getCoinrank());
+        assertEquals( 1L,givenCoin.getId());
     }
 
     @Test
@@ -90,8 +89,8 @@ class CoinServiceTest {
 
         Coin givenCoin = testService.getCoinByTicker("ticker");
 
-        assertEquals(givenCoin.getId(), 1L);
-        assertEquals(givenCoin.getCoinrank(), 1L);
+        assertEquals( 1L,givenCoin.getId());
+        assertEquals( 1L,givenCoin.getCoinrank());
     }
 
     @Test
@@ -113,7 +112,7 @@ class CoinServiceTest {
 
         List<Coin> givenCoins = testService.getCoinsByPhrase("name");
 
-        assertEquals(givenCoins.size(), 2);
+        assertEquals(2,givenCoins.size());
     }
 
     @Test
@@ -135,7 +134,7 @@ class CoinServiceTest {
 
         List<Coin> givenCoins = testService.getCoinsByPhrase("Ticker");
 
-        assertEquals(givenCoins.size(), 2);
+        assertEquals( 2,givenCoins.size());
     }
 
     @Test
@@ -168,11 +167,11 @@ class CoinServiceTest {
         var testService = new CoinService(coinRepository, null);
         ObjectNode coinInfo = testService.getCoinInfo(1L, new BigDecimal(11.11), new BigDecimal(1.00), new BigDecimal(11.11), "date");
 
-        assertEquals(coinInfo.get("info").get("name").asText(), "usd-coin");
-        assertEquals(coinInfo.get("info").get("ticker").asText(), "usdc");
-        assertEquals(coinInfo.get("info").get("rank").asLong(), 4L);
-        assertEquals(coinInfo.get("info").get("image").asText(), "image");
-        assertEquals(coinInfo.get("info").get("id").asLong(), 1L);
+        assertEquals( "usd-coin",coinInfo.get("info").get("name").asText());
+        assertEquals( "usdc",coinInfo.get("info").get("ticker").asText());
+        assertEquals(4L,coinInfo.get("info").get("rank").asLong());
+        assertEquals( "image",coinInfo.get("info").get("image").asText());
+        assertEquals( 1L,coinInfo.get("info").get("id").asLong());
     }
 
     private CoinRepository inMemoryCoinRepository() {
@@ -237,6 +236,5 @@ class CoinServiceTest {
                 return coins.put(coin.getId(), coin);
             }
         };
-
     }
 }

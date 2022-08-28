@@ -40,7 +40,7 @@ class WalletServiceTest {
         walletRepository.save(wallet);
         testService.editWallet("renamedWallet", 1L);
 
-        assertEquals(walletRepository.findById(1L).get().getName(), "renamedWallet");
+        assertEquals("renamedWallet", walletRepository.findById(1L).get().getName());
     }
 
     @Test
@@ -82,59 +82,58 @@ class WalletServiceTest {
         walletRepository.save(wallet);
 
         assertTrue(testService.userIsOwner(1L, 1L));
-
     }
 
     @Test
     void should_return_correct_percentange_change() {
         var testService = new WalletService(null);
-        assertEquals(testService.getPercentageChange(new BigDecimal("1.0"), new BigDecimal("2.0")), new BigDecimal("100.00"));
-        assertEquals(testService.getPercentageChange(new BigDecimal("2"), new BigDecimal("1")), new BigDecimal("-50.00"));
-        assertEquals(testService.getPercentageChange(new BigDecimal("3"), new BigDecimal("4")), new BigDecimal("33.33"));
-        assertEquals(testService.getPercentageChange(new BigDecimal("13"), new BigDecimal("15")), new BigDecimal("15.38"));
-        assertEquals(testService.getPercentageChange(new BigDecimal("4.4"), new BigDecimal("6.6")), new BigDecimal("50.00"));
-        assertEquals(testService.getPercentageChange(new BigDecimal("1"), new BigDecimal("1")), new BigDecimal("0.00"));
-        assertEquals(testService.getPercentageChange(new BigDecimal("1"), new BigDecimal("0")), new BigDecimal("-100.00"));
+        assertEquals(new BigDecimal("100.00"), testService.getPercentageChange(new BigDecimal("1.0"), new BigDecimal("2.0")));
+        assertEquals(new BigDecimal("-50.00"), testService.getPercentageChange(new BigDecimal("2"), new BigDecimal("1")));
+        assertEquals(new BigDecimal("33.33"), testService.getPercentageChange(new BigDecimal("3"), new BigDecimal("4")));
+        assertEquals(new BigDecimal("15.38"), testService.getPercentageChange(new BigDecimal("13"), new BigDecimal("15")));
+        assertEquals(new BigDecimal("50.00"), testService.getPercentageChange(new BigDecimal("4.4"), new BigDecimal("6.6")));
+        assertEquals(new BigDecimal("0.00"), testService.getPercentageChange(new BigDecimal("1"), new BigDecimal("1")));
+        assertEquals(new BigDecimal("-100.00"), testService.getPercentageChange(new BigDecimal("1"), new BigDecimal("0")));
     }
 
     @Test
     void should_return_zero() {
         var testService = new WalletService(null);
-        assertEquals(testService.getPercentageChange(new BigDecimal("0"), new BigDecimal("1")), new BigDecimal("0.00"));
-        assertEquals(testService.getPercentageChange(new BigDecimal("0"), new BigDecimal("0")), new BigDecimal("0.00"));
+        assertEquals(new BigDecimal("0.00"), testService.getPercentageChange(new BigDecimal("0"), new BigDecimal("1")));
+        assertEquals(new BigDecimal("0.00"), testService.getPercentageChange(new BigDecimal("0"), new BigDecimal("0")));
     }
 
     @Test
-    void should_count_coins_amount(){
+    void should_count_coins_amount() {
         Wallet wallet = new Wallet();
         wallet.setId(1L);
 
-        List <Transaction> transactions = List.of(
-                new Transaction(1L,"BUY",wallet,new BigDecimal(3),new BigDecimal(1.1), new Date(),"note"),
-                new Transaction(1L,"BUY",wallet,new BigDecimal(2),new BigDecimal(1.1), new Date(),"note"),
-                new Transaction(1L,"SELL",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note"),
-                new Transaction(2L,"BUY",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note"),
-                new Transaction(2L,"SELL",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note")
+        List<Transaction> transactions = List.of(
+                new Transaction(1L, "BUY", wallet, new BigDecimal(3), new BigDecimal(1.1), new Date(), "note"),
+                new Transaction(1L, "BUY", wallet, new BigDecimal(2), new BigDecimal(1.1), new Date(), "note"),
+                new Transaction(1L, "SELL", wallet, new BigDecimal(1), new BigDecimal(1.1), new Date(), "note"),
+                new Transaction(2L, "BUY", wallet, new BigDecimal(1), new BigDecimal(1.1), new Date(), "note"),
+                new Transaction(2L, "SELL", wallet, new BigDecimal(1), new BigDecimal(1.1), new Date(), "note")
         );
 
         var testService = new WalletService(null);
 
         Map<Long, BigDecimal> coinsAmount = testService.countCoinsAmount(transactions);
         assertEquals(2, coinsAmount.size());
-        assertEquals(new BigDecimal(4),coinsAmount.get(1L));
-        assertEquals(new BigDecimal(0),coinsAmount.get(2L));
+        assertEquals(new BigDecimal(4), coinsAmount.get(1L));
+        assertEquals(new BigDecimal(0), coinsAmount.get(2L));
     }
 
     @Test
-    void should_count_total_spend(){
+    void should_count_total_spend() {
         Wallet wallet = new Wallet();
         wallet.setId(1L);
 
-        List <Transaction> transactions = List.of(
-                new Transaction(1L,"BUY",wallet,new BigDecimal(3),new BigDecimal(1.1), new Date(),"note"),
-                new Transaction(1L,"SELL",wallet,new BigDecimal(2),new BigDecimal(1.1), new Date(),"note"),
-                new Transaction(2L,"BUY",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note"),
-                new Transaction(2L,"SELL",wallet,new BigDecimal(1),new BigDecimal(1.1), new Date(),"note")
+        List<Transaction> transactions = List.of(
+                new Transaction(1L, "BUY", wallet, new BigDecimal(3), new BigDecimal(1.1), new Date(), "note"),
+                new Transaction(1L, "SELL", wallet, new BigDecimal(2), new BigDecimal(1.1), new Date(), "note"),
+                new Transaction(2L, "BUY", wallet, new BigDecimal(1), new BigDecimal(1.1), new Date(), "note"),
+                new Transaction(2L, "SELL", wallet, new BigDecimal(1), new BigDecimal(1.1), new Date(), "note")
         );
 
         var testService = new WalletService(null);
@@ -143,7 +142,7 @@ class WalletServiceTest {
     }
 
     @Test
-    void check_if_wallet_exist_and_return_true(){
+    void check_if_wallet_exist_and_return_true() {
         var walletRepository = inMemoryWalletRepository();
 
         Wallet wallet = new Wallet();
@@ -156,7 +155,7 @@ class WalletServiceTest {
     }
 
     @Test
-    void check_if_wallet_exist_and_return_false(){
+    void check_if_wallet_exist_and_return_false() {
         var walletRepository = inMemoryWalletRepository();
         var testService = new WalletService(walletRepository);
 
@@ -164,7 +163,7 @@ class WalletServiceTest {
     }
 
     @Test
-    void should_return_user_wallets_list(){
+    void should_return_user_wallets_list() {
         var walletRepository = inMemoryWalletRepository();
 
         Wallet wallet = new Wallet();
@@ -180,13 +179,12 @@ class WalletServiceTest {
         walletRepository.save(wallet);
         walletRepository.save(wallet2);
 
-        assertEquals(testService.getUserWallets(1L).size(),2);
-        assertEquals(testService.getUserWallets(1L).stream().filter(w -> w.getId().equals(2L)).findFirst().get().getName(),"wallet2");
-
+        assertEquals(2, testService.getUserWallets(1L).size());
+        assertEquals("wallet2", testService.getUserWallets(1L).stream().filter(w -> w.getId().equals(2L)).findFirst().get().getName());
     }
 
     @Test
-    void should_return_wallet_with_given_id(){
+    void should_return_wallet_with_given_id() {
         var walletRepository = inMemoryWalletRepository();
 
         Wallet wallet = new Wallet();
@@ -197,9 +195,8 @@ class WalletServiceTest {
         var testService = new WalletService(walletRepository);
         walletRepository.save(wallet);
 
-        assertEquals(testService.getWalletById(1L).getName(),"wallet");
-        assertEquals(testService.getWalletById(1L).getOwnerId(),1L);
-
+        assertEquals("wallet", testService.getWalletById(1L).getName());
+        assertEquals(1L, testService.getWalletById(1L).getOwnerId());
     }
 
     private WalletRepository inMemoryWalletRepository() {
@@ -227,7 +224,5 @@ class WalletServiceTest {
                 wallets.remove(id);
             }
         };
-
     }
-
 }

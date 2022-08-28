@@ -58,7 +58,7 @@ class TransactionServiceTest {
         assertEquals(t.getCoinId(), givenTransaction.getCoinId());
         assertEquals(t.getAmount(), givenTransaction.getAmount());
         assertEquals(t.getPrice(), givenTransaction.getPrice());
-        assertEquals(t.getNote(),"initial");
+        assertEquals("initial",givenTransaction.getNote());
     }
 
     @Test
@@ -89,7 +89,6 @@ class TransactionServiceTest {
         t.setDate(new Date());
         t.setNote("test");
 
-
         Transaction toEDit = new Transaction();
         toEDit.setId(1L);
         toEDit.setPrice(new BigDecimal(5.5));
@@ -104,11 +103,10 @@ class TransactionServiceTest {
 
         Transaction editedTransaction = transactionRepository.findById(1L).get();
 
-        assertEquals(editedTransaction.getPrice(),toEDit.getPrice());
-        assertEquals(editedTransaction.getAmount(),toEDit.getAmount());
-        assertEquals(editedTransaction.getNote(),toEDit.getNote());
-        assertEquals(editedTransaction.getDate(), toEDit.getDate());
-
+        assertEquals(toEDit.getPrice(),editedTransaction.getPrice());
+        assertEquals(toEDit.getAmount(),editedTransaction.getAmount());
+        assertEquals(toEDit.getNote(),editedTransaction.getNote());
+        assertEquals( toEDit.getDate(),editedTransaction.getDate());
     }
 
     @Test
@@ -155,8 +153,8 @@ class TransactionServiceTest {
 
         testService.deleteTransactionsByCoinId(1L,1l);
 
-        assertEquals(transactionRepository.findByWallet(w1).size(),0);
-        assertEquals(transactionRepository.findByWallet(w2).size(),1);
+        assertEquals(0,transactionRepository.findByWallet(w1).size());
+        assertEquals(1,transactionRepository.findByWallet(w2).size());
     }
 
     @Test
@@ -188,8 +186,8 @@ class TransactionServiceTest {
         transactionRepository.save(t2);
         transactionRepository.save(t3);
 
-        assertEquals(transactionRepository.findByWallet(w1).size(),2);
-        assertEquals(transactionRepository.findByWallet(w2).size(),1);
+        assertEquals(2,transactionRepository.findByWallet(w1).size());
+        assertEquals(1,transactionRepository.findByWallet(w2).size());
     }
 
     private TransactionRepository inMemoryTransactionRepository() {
@@ -244,5 +242,4 @@ class TransactionServiceTest {
             }
         };
     }
-
 }

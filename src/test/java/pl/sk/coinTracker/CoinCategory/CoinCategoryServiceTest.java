@@ -54,7 +54,7 @@ class CoinCategoryServiceTest {
         var testService = new CoinCategoryService(coinCategoryRepository);
         coinCategoryRepository.save(c);
 
-        assertTrue(testService.categoryExists(1L,"name"));
+        assertTrue(testService.categoryExists(1L, "name"));
     }
 
     @Test
@@ -68,8 +68,8 @@ class CoinCategoryServiceTest {
         var testService = new CoinCategoryService(coinCategoryRepository);
         coinCategoryRepository.save(c);
 
-        assertFalse(testService.categoryExists(2L,"name"));
-        assertFalse(testService.categoryExists(1L,"name2"));
+        assertFalse(testService.categoryExists(2L, "name"));
+        assertFalse(testService.categoryExists(1L, "name2"));
     }
 
     @Test
@@ -92,7 +92,7 @@ class CoinCategoryServiceTest {
     }
 
     @Test
-    void check_if_user_is_owner_and_return_true(){
+    void check_if_user_is_owner_and_return_true() {
         var coinCategoryRepository = inMemoryCoinCategoryRepository();
 
         CoinCategory c = new CoinCategory();
@@ -107,12 +107,12 @@ class CoinCategoryServiceTest {
         coinCategoryRepository.save(c);
         coinCategoryRepository.save(c1);
 
-        assertTrue(testService.userIsOwner(1L,1L));
-        assertTrue(testService.userIsOwner(1L,2L));
+        assertTrue(testService.userIsOwner(1L, 1L));
+        assertTrue(testService.userIsOwner(1L, 2L));
     }
 
     @Test
-    void check_if_user_is_owner_and_return_false(){
+    void check_if_user_is_owner_and_return_false() {
         var coinCategoryRepository = inMemoryCoinCategoryRepository();
 
         CoinCategory c = new CoinCategory();
@@ -127,8 +127,8 @@ class CoinCategoryServiceTest {
         coinCategoryRepository.save(c);
         coinCategoryRepository.save(c1);
 
-        assertFalse(testService.userIsOwner(1L,2L));
-        assertFalse(testService.userIsOwner(2L,1L));
+        assertFalse(testService.userIsOwner(1L, 2L));
+        assertFalse(testService.userIsOwner(2L, 1L));
     }
 
     @Test
@@ -152,8 +152,8 @@ class CoinCategoryServiceTest {
         coinCategoryRepository.save(c1);
         coinCategoryRepository.save(c2);
 
-        assertEquals(testService.getUserCategories(1L).size(),2);
-        assertEquals(testService.getUserCategories(2L).size(),1);
+        assertEquals(2, testService.getUserCategories(1L).size());
+        assertEquals(1, testService.getUserCategories(2L).size());
     }
 
     private CoinCategoryRepository inMemoryCoinCategoryRepository() {
@@ -189,6 +189,4 @@ class CoinCategoryServiceTest {
             }
         };
     }
-
-
 }
